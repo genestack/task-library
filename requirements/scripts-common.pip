@@ -1,0 +1,5 @@
+git+git://github.com/jamescasbon/PyVCF.git@ec193b12b9443dc40b0ea49cde134fe60915b60f#egg=pyvcf
+pytest==2.9.0
+bitarray==0.8.1
+biopython==1.61
+rdflib==4.2.1

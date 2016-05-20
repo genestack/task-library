@@ -1,0 +1,3 @@
+requests==2.7.0
+bcbio-gff==0.4
+git+git://github.com/jamescasbon/PyVCF.git@ec193b12b9443dc40b0ea49cde134fe60915b60f#egg=pyvcf

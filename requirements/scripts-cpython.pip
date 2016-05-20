@@ -1,0 +1,9 @@
+pysam==0.7.7
+scipy==0.15.0
+smhasher==0.150.1
+numpy==1.9.2
+HTSeq==0.6.1
+poretools==0.5.1
+lxml==3.5.0
+qiime==1.9.1
+beautifulsoup4==4.4.1
