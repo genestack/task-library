@@ -12,10 +12,28 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+
 import sys
 import os
+
+print sys.real_prefix
 import shlex
 import sphinx_rtd_theme
+
+
+# Mock to make docs buildable on readthedocs.org
+try:
+    from mock import Mock as MagicMock
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+                return Mock()
+
+    MOCK_MODULES = ['vcf', 'requests']
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+except ImportError:
+    pass
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from version import __version__
