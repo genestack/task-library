@@ -16,7 +16,6 @@
 import sys
 import os
 
-print sys.real_prefix
 import shlex
 import sphinx_rtd_theme
 
