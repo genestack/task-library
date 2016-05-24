@@ -20,6 +20,7 @@ Table of Contents
    guide
    tools
    api_reference
+   autocomplete
 
 
 
