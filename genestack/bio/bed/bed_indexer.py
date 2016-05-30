@@ -153,27 +153,28 @@ class BEDIndexer(object):
 
         with open(self.output, 'w') as f:
 
-            for index, track in enumerate(tracks):
+            for track_index, track in enumerate(tracks):
                 f.write(track)
                 f.write('\n')
                 offset += len(track) + 1
 
                 last_contig = None
-                with open(self._get_track_path(i)) as track_features:
+                block = None
+
+                with open(self._get_track_path(track_index)) as track_features:
                     for line in track_features:
                         f.write(line)
                         feature = line.split('\t')
                         contig = feature[0]
                         if contig != last_contig:
+                            self._dump_block_to_file(block, track_index)
                             block = Block(contig)
                             last_contig = contig
-                            self._dump_block_to_file(block, index)
-
                         size = len(line)
                         block.add(feature[1], feature[2], offset, size)
                         offset += size
 
-                    self._dump_block_to_file(block, index)
+                    self._dump_block_to_file(block, track_index)
 
         with open(self.tracks, "w") as f:
             for track in tracks:
@@ -186,6 +187,8 @@ class BEDIndexer(object):
         self.bed.PUT(self.TRACKS_INDEX_LOCATION, StorageUnit(self.tracks))
 
     def _dump_block_to_file(self, block, index):
+        if block is None:
+            return
         index_output = os.path.join(self.index_cache_folder, '%s.%s.index' % (index, block.name))
         with open(index_output, "wb") as index_file:
             block.write(index_file)
@@ -230,7 +233,7 @@ class Block(object):
             block[3] += size
 
     def __repr__(self):
-        return "<Block: Chromosome of %s interval>" % len(self.intervals)
+        return "<Block: %s %s-%s>" % (self.name, self.get_start(), self.get_end())
 
     def write(self, f):
         for interval in self.intervals:
