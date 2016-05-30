@@ -1,7 +1,9 @@
+.. _AUTOCOMPLETE:
+
 Autocomplete
 ============
 
-To have autocomplete during development of task scripts in you coding tool you can add task-library bindings.
+To have autocomplete during development of task scripts in you IDE you can add task-library bindings.
 
 
 - Copy task-library to your machine
