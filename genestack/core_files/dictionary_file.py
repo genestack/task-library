@@ -7,7 +7,6 @@ from genestack.java import java_object, JAVA_LIST
 
 
 class DictionaryFileQuery(object):
-
     CLASS_NAME = 'com.genestack.api.files.queries.DictionaryFileQuery'
     MAX_LIMIT = 50
 
@@ -44,6 +43,13 @@ class DictionaryFile(File):
 
     DATA_LOCATION = 'genestack.location:data'
     DATA_LINK = 'genestack.url:data'
+
+    # Key to store list of relation types that present in dictionary
+    # Each type should be added as StringValue
+    RELATIONS_KEY = 'genestack.dictionary:relations'
+    # Key to store list of custom user data filed names
+    # Each name should be added as StringValue
+    CUSTOM_DATA_KEY = 'genestack.dictionary:customData'
 
     def put_data_file(self, path):
         self.PUT(self.DATA_LOCATION, StorageUnit(gzip_file(path)))

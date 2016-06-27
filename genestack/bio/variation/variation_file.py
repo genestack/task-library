@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
-
 import os
+import pipes
 import subprocess
-
 import time
 
 from genestack import ReportFile, GenestackException, StorageUnit, environment, utils
 from genestack.cla import CLA
 from genestack.compression import decompress_file, gzip_file
-from genestack.metainfo import StringValue
 
 
 class Variation(ReportFile):
@@ -76,7 +74,7 @@ class Variation(ReportFile):
         :rtype: basestring
         """
         compressed_file = data_file_path + '.bgz'
-        CLA(self).get_tool('tabix', 'bgzip').run(['-c', data_file_path, '>', compressed_file])
+        CLA(self).get_tool('tabix', 'bgzip').run(['-c', pipes.quote(data_file_path), '>', pipes.quote(compressed_file)])
         return compressed_file
 
     def __create_tabix(self, data_file_path):
@@ -90,7 +88,7 @@ class Variation(ReportFile):
         :rtype: basestring
         """
         index_file = data_file_path + '.tbi'
-        CLA(self).get_tool('tabix', 'tabix').run(['-p', 'vcf', data_file_path])
+        CLA(self).get_tool('tabix', 'tabix').run(['-p', 'vcf', pipes.quote(data_file_path)])
         return index_file
 
     def __create_index(self, data_file_path):

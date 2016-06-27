@@ -129,7 +129,17 @@ class AlignedReads(File):
         temp_file = os.path.join(tmp_folder, 'without_options.bam')
         # os.rename(bam_path, temp_file)
         samtools = CLA(self).get_tool('samtools', 'samtools')
-        samtools.run(["view -H", bam_path, "| grep -v '^@PG' | samtools reheader -", bam_path, ">", temp_file])
+
+        # newer samtools, by default, add 'PG' header info when you call 're-header' command
+        # the '--no-PG' option is not available in older samtools
+        args = ["view -H", bam_path, "| grep -v '^@PG' |"]
+        if samtools.version.startswith('1.3'):
+            args.append("samtools reheader --no-PG -")
+        else:
+            args.append("samtools reheader -")
+        args.extend([bam_path, ">", temp_file])
+
+        samtools.run(args)
         if remove:
             os.remove(bam_path)
         return temp_file
@@ -152,7 +162,10 @@ class AlignedReads(File):
             args.extend(['-@', str(get_cpu_count())])
         if by_name:
             args.append('-n')
-        args.extend([bam_path, sorted_bam_prefix])
+        if samtools.version == '1.3.1':
+            args.extend([bam_path, '-o', sorted_bam_prefix + '.bam'])
+        else:
+            args.extend([bam_path, sorted_bam_prefix])
         samtools.run(args)
         if remove:
             os.remove(bam_path)

@@ -8,8 +8,35 @@ import os
 import urllib
 import mimetypes
 
+from subprocess import check_output
+
 from genestack import File, StorageUnit
 from genestack.metainfo import StringValue
+
+# Register bio mime types
+types_to_register = {
+    'application/octet-stream': [
+        '.bam',
+        '.bai',
+        '.cram',
+        '.sra'
+    ],
+    'text/plain': [
+        '.vcf',
+        '.fastq',
+        '.fq',
+        '.qual',
+        '.fa',
+        '.bed',
+        '.wig',
+        '.gtf',
+        '.gff',
+    ]
+}
+
+for type_, extensions in types_to_register.items():
+    for extension in extensions:
+        mimetypes.add_type(type_, extension)
 
 
 class ReportFile(File):
@@ -92,7 +119,7 @@ class ReportFile(File):
     @staticmethod
     def __extract_mime(path):
         pathname_url = urllib.pathname2url(os.path.abspath(path))
-        guessed_mime = mimetypes.guess_type(pathname_url)
-        if guessed_mime[0] is None:
-            return 'text/plain'
-        return guessed_mime[0]
+        guessed_mime, _ = mimetypes.guess_type(pathname_url)
+        if guessed_mime is not None:
+            return guessed_mime
+        return check_output(['file', '-b', '--mime-type', path]).rstrip('\n')

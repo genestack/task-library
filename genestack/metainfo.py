@@ -107,7 +107,6 @@ class Metainfo(dict):
             'flags': java_object(JAVA_HASH_MAP, self.flags)
         }
 
-
     def set_flags(self, key, mask):
         """
         Set a flag for a metainfo key. Setting a flag equal to ``0`` will remove any flag from the key.
@@ -227,6 +226,9 @@ class MetainfoSimpleValue(MetainfoValue):
         """
         return self._get('value')
 
+    def __str__(self):
+        return str(self.value)
+
 
 class BooleanValue(MetainfoSimpleValue):
     def __init__(self, value):
@@ -245,7 +247,10 @@ class DateTimeValue(MetainfoValue):
         :return: date value
         :rtype: datetime.datetime
         """
-        return datetime.utcfromtimestamp(self._get('date'))
+        return datetime.utcfromtimestamp(self._get('date') / 1000.0)
+
+    def __str__(self):
+        return self.date.strftime('%Y-%m-%d %H:%M:%S')
 
 
 class StringValue(MetainfoSimpleValue):
@@ -302,6 +307,9 @@ class ExternalLink(MetainfoValue):
         :rtype: dict | None
         """
         return self._get('format')
+
+    def __str__(self):
+        return self.url
 
 
 class OrganizationValue(MetainfoValue):
@@ -408,6 +416,9 @@ class OrganizationValue(MetainfoValue):
     def url(self):
         return self._get('url')
 
+    def __str__(self):
+        return self.name
+
 
 class PersonValue(MetainfoValue):
     def __init__(self, name, email, phone):
@@ -442,6 +453,9 @@ class PersonValue(MetainfoValue):
         :rtype: str
         """
         return self._get('phone')
+
+    def __str__(self):
+        return self.name
 
 
 class PublicationValue(MetainfoValue):
@@ -523,6 +537,9 @@ class PublicationValue(MetainfoValue):
         """
         return self._get('identifiers')
 
+    def __str__(self):
+        return self.title
+
 
 class PhysicalValue(MetainfoValue):
     def __init__(self, java_type, value, unit):
@@ -550,6 +567,9 @@ class PhysicalValue(MetainfoValue):
         :rtype: str
         """
         return self._get('unit')
+
+    def __str__(self):
+        return '%s %s' % (self.value, self.unit)
 
 
 class FileReference(MetainfoValue):
@@ -579,7 +599,13 @@ class FileReference(MetainfoValue):
         """
         return self._get('direction')
 
+    def __str__(self):
+        return self.accession
+
 
 class EmptyValue(MetainfoValue):
     def __init__(self):
         super(EmptyValue, self).__init__(MetainfoValue.EMPTY_VALUE, {})
+
+    def __str__(self):
+        return ''
