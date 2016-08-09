@@ -5,6 +5,7 @@
 """
 
 from genestack import File
+from genestack.metainfo import Metainfo
 
 
 # TODO: Do we need this class only as constant container?
@@ -13,6 +14,6 @@ from genestack import File
 # AUXILIARY_FILE_KEY_DATA_LOCATION = 'genestack.location:data'  # same value used as constant in other places
 # AUXILIARY_FILE_KEY_CLASS_NAME = 'com.genestack.api.files.IAuxiliaryFile'  # never used
 class AuxiliaryFile(File):
-    DATA_LOCATION = 'genestack.location:data'
+    DATA_LOCATION = Metainfo.DATA_LOCATION
     MASTER_FILE = 'genestack:master'
     INTERFACE_NAME = 'com.genestack.api.files.IAuxiliaryFile'

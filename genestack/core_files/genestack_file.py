@@ -78,8 +78,9 @@ class File(GenestackObject):
         :param key: matainfo key
         :type key: str
         :param filetype: expected return class, must be subclass of File
-        :type filetype: type
+        :type filetype: T
         :return: list of File or it subclass instances.
+        :rtype: list[T()]
         """
         filetype = checked_filetype(filetype)
         return [self.__resolve_reference(key, ref, filetype)
@@ -92,8 +93,9 @@ class File(GenestackObject):
         :param key: matainfo key
         :type key: str
         :param filetype: expected return class, must be subclass of File
-        :type filetype: type
-        :return: instance of File or it subclass.
+        :type filetype: T
+        :return: instance of File or it subclass
+        :rtype: T()
         """
         return self.__resolve_reference(
             key,
@@ -101,23 +103,35 @@ class File(GenestackObject):
             checked_filetype(filetype)
         )
 
-    def __resolve_reference(self, key, ref, filetype):
-        if not isinstance(ref, FileReference):
+    def __resolve_reference(self, key, file_reference, filetype):
+        """
+        Resolve reference.
+
+        :param key: reference key
+        :type key: str
+        :param file_reference:
+        :type file_reference: FileReference
+        :param filetype: type of return file
+        :type filetype: T
+        :return: instance of the filetype
+        :rtype: T()
+        """
+        if not isinstance(file_reference, FileReference):
             raise GenestackException(
-                'Metainfo value at %s is %s, not a FileReference' % (key, type(ref))
+                'Metainfo value at %s is %s, not a FileReference' % (key, type(file_reference))
             )
         serialized_file_class = [
             'java.lang.Class', 'com.genestack.api.files.IFile'
         ]
 
-        res = self.invoke(
+        result = self.invoke(
             'resolveReference',
             ['com.genestack.api.metainfo.FileReference', 'java.lang.Class'],
-            [ref, serialized_file_class])
-        if ref is None:
+            [file_reference, serialized_file_class])
+        if result is None:
             raise GenestackException('Cannot resolve reference: "%s", '
                                      'check if task owner has permission to access this file' % key)
-        return filetype(res['id'])
+        return filetype(result['id'])
 
     def add_checksum_conditionally(self, key, storage_units):
         check_key = 'genestack.checksum:markedForTests'
@@ -158,7 +172,7 @@ class File(GenestackObject):
         :type formats: various
         :param format_pattern: format pattern
         :type format_pattern: :py:class:`~genestack.utils.FormatPattern`
-        :param working_dir: optional dir to save files, default is current dir
+        :param working_dir: directory to copy files into, default is current directory
         :type working_dir: str
         :return: List of :py:class:`~genestack.StorageUnit`
         :rtype: list
@@ -188,6 +202,7 @@ class File(GenestackObject):
         :param key: metainfo key
         :type key: str
         :param storage_or_list: list fo StorageUnits or single StorageUrl
+        :type storage_or_list: list[StorageUnit] | StorageUnit
         :return: None
         :raise GenestackException: if can not save file to database
         """
@@ -222,7 +237,7 @@ class File(GenestackObject):
         :type fold: bool
         :param put_to_storage: flag if file should be put to storage
         :type put_to_storage: bool
-        :param working_dir: folder to store download files
+        :param working_dir: directory to copy files into, default is current directory
         :type working_dir: str
         :return: list of paths to downloaded files
         :rtype: list

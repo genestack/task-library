@@ -6,6 +6,7 @@ from genestack.java import java_object
 from genestack.utils import validate_type
 from genestack.metainfo import MetainfoValue
 
+
 class BasicFileFilter(object):
     pass
 

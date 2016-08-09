@@ -5,8 +5,10 @@ import gzip
 import multiprocessing
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
+import time
 import struct
 from copy import deepcopy
 from functools import wraps
@@ -14,6 +16,7 @@ from subprocess import check_call
 from contextlib import contextmanager
 from datetime import datetime, timedelta, tzinfo
 
+from genestack import environment
 from genestack.environment import PROGRAMS_DIRECTORY
 from genestack import GenestackException
 
@@ -502,3 +505,42 @@ def validate_type(value, value_type, accept_none=False):
         return
     if not isinstance(value, value_type):
         raise GenestackException('Parameter must be of type %s, not %s' % (value_type, type(value)))
+
+
+def get_java_tool(jar_name):
+    """
+    Returns path to the executable jar from the 'tools' folder, specified by the given name.
+
+    :param jar_name: name of the tool
+    :type jar_name: str
+    :return: path to the tool
+    :rtype: str
+    """
+
+    return os.path.join(environment.TASK_LIBRARY_ROOT, 'tools', '%s.jar' % jar_name)
+
+
+def run_java_tool(tool, *args):
+    """
+    Runs the java tool with the provided path and parameters and logs the process.
+
+    :param tool: path to the java tool
+    :type tool: str
+    :param args: tool arguments
+    :type args: list[str]
+    """
+
+    tool_name = os.path.basename(os.path.normpath(tool))
+    start_msg = 'Start %s' % tool_name
+    log_info(start_msg)
+    log_warning(start_msg)
+    start_time = time.time()
+
+    params = ['java', '-jar', tool]
+    params.extend(args)
+    subprocess.check_call(params)
+
+    tdelta = format_tdelta(time.time() - start_time)
+    exit_msg = 'Finish %s in %s' % (tool_name, tdelta)
+    log_info(exit_msg)
+    log_warning(exit_msg)

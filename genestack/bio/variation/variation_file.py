@@ -7,6 +7,7 @@ import time
 from genestack import ReportFile, GenestackException, StorageUnit, environment, utils
 from genestack.cla import CLA
 from genestack.compression import decompress_file, gzip_file
+from genestack.metainfo import Metainfo
 
 
 class Variation(ReportFile):
@@ -21,9 +22,9 @@ class Variation(ReportFile):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.IVariationFile'
 
-    DATA_LOCATION = 'genestack.location:data'
+    DATA_LOCATION = Metainfo.DATA_LOCATION
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    SOURCE_KEY = 'genestack.bio:sourceData'
+    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
     INDEX_LOCATION = 'genestack.location:index'
     TABIX_LOCATION = 'genestack.location:tabix'
 
@@ -41,12 +42,13 @@ class Variation(ReportFile):
         PUTs and indexes the given variation file.
 
         :param path: path to the variation file
-        :type path: basestring
+        :type path: str
         :rtype: None
         """
         compressed_data_file = self.__create_compressed_data_file(path)
         tabix = self.__create_tabix(compressed_data_file)
-        index = self.__create_index(compressed_data_file)
+        num_of_variants = self.__get_number_of_variants(compressed_data_file)
+        index = self.__create_index(compressed_data_file, num_of_variants)
 
         self.put_data_file(compressed_data_file)
         self.put_tabix_file(tabix)
@@ -69,12 +71,13 @@ class Variation(ReportFile):
         Creates an archive that contains the given variation file using BGZIP compression.
 
         :param data_file_path: path to the variation file
-        :type data_file_path: basestring
+        :type data_file_path: str
         :return: path to the compressed archive
-        :rtype: basestring
+        :rtype: str
         """
         compressed_file = data_file_path + '.bgz'
-        CLA(self).get_tool('tabix', 'bgzip').run(['-c', pipes.quote(data_file_path), '>', pipes.quote(compressed_file)])
+        bgzip = CLA(self).get_tool('bcftools', 'bgzip')
+        bgzip.run(['-c', pipes.quote(data_file_path), '>', pipes.quote(compressed_file)])
         return compressed_file
 
     def __create_tabix(self, data_file_path):
@@ -83,38 +86,34 @@ class Variation(ReportFile):
         NOTE: the variation file MUST be compressed using BGZIP compression!
 
         :param data_file_path: path to the compressed variation file
-        :type data_file_path: basestring
+        :type data_file_path: str
         :return: path to the built index
-        :rtype: basestring
+        :rtype: str
         """
         index_file = data_file_path + '.tbi'
-        CLA(self).get_tool('tabix', 'tabix').run(['-p', 'vcf', pipes.quote(data_file_path)])
+        CLA(self).get_tool('bcftools', 'bcftools').run(['index', '-t', pipes.quote(data_file_path)])
         return index_file
 
-    def __create_index(self, data_file_path):
+    def __get_number_of_variants(self, data_file_path):
+        bcftools = CLA(self).get_tool('bcftools', 'bcftools')
+        return bcftools.output(['index', '-n', pipes.quote(data_file_path)]).strip()
+
+    @staticmethod
+    def __create_index(data_file_path, num_of_variants):
         """
         Indexes the given variation file to enable feature searching.
         NOTE: the variation file MUST be compressed using BGZIP compression!
 
         :param data_file_path: path to the compressed variation file
-        :type data_file_path: basestring
+        :type data_file_path: str
         :return: path to the index archive
-        :rtype: basestring
+        :rtype: str
         """
-        indexer = os.path.join(environment.TASK_LIBRARY_ROOT, 'tools', 'genestack-vcf-indexer.jar')
+        indexer = utils.get_java_tool('genestack-vcf-indexer')
         index_folder = os.path.join(os.path.dirname(data_file_path), data_file_path + '.index')
 
-        start_msg = 'Start vcf indexer'
-        utils.log_info(start_msg)
-        utils.log_warning(start_msg)
-        start_time = time.time()
-
-        subprocess.check_call(['java', '-jar', indexer, '-d', index_folder, data_file_path])
-
-        tdelta = utils.format_tdelta(time.time() - start_time)
-        exit_msg = 'Finish vcf indexer in %s' % tdelta
-        utils.log_info(exit_msg)
-        utils.log_warning(exit_msg)
+        cmd_args = [indexer, '-d', index_folder, '-n', num_of_variants, data_file_path]
+        utils.run_java_tool(indexer, *cmd_args)
 
         # compress the index folder as a single ZIP archive
         archive_name = index_folder + '.zip'

@@ -140,7 +140,7 @@ class Tool(object):
         """
         Run tool with arguments and return its output as a byte string.
 
-        If the exit code was non-zero it raises a GenestackException.
+        If the exit code was non-zero it raises a :py:class:`~genestack.GenestackException`.
 
         This method is thread safe, except log output. Use `verbose=False` when
         multiprocessing.

@@ -20,13 +20,21 @@ class Metainfo(dict):
     DATA_URL = "genestack.url:data"
     DATA_LOCATION = "genestack.location:data"
     EXTERNAL_LINKS = "genestack:links"
-    RAW_LOCATION = "genestack.rawFile:data"
+    RAW_FILE_REFERENCE = "genestack.rawFile:data"
+    # DEPRECATED use RAW_FILE_REFERENCE instead
+    RAW_LOCATION = RAW_FILE_REFERENCE
     ORGANIZATION = "genestack:organization"
     CONTACT_PERSON = "genestack:contactPerson"
     STORAGE_DATA_SIZE = "genestack:storageDataSize"
     INDEX_DATA_SIZE = "genestack:indexDataSize"
     DATABASE_SIZE = "genestack:databaseDataSize"
     PROGRESS_INFO = "genestack:progressInfo"
+    DATA_TYPE = "genestack:dataType"
+
+    # Deprecated, applications should switch to SOURCE_DATA in java and python
+    SOURCE_DATA_KEY = "genestack.bio:sourceData"
+
+    SOURCE_DATA = "genestack:sourceData"
 
     class Flag(object):
 

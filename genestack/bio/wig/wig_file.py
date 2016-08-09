@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from genestack import File
+from genestack.metainfo import Metainfo
 
 
 class WIG(File):
@@ -12,5 +13,5 @@ class WIG(File):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.genomedata.IGenomeWiggleData'
 
-    WIG_SOURCE_LOCATION = "genestack.location:data"
+    WIG_SOURCE_LOCATION = Metainfo.DATA_LOCATION
 

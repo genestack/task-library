@@ -44,9 +44,10 @@ def decode_object(obj):
     The following Java class names are treated in a special way:
         - ``java.util.Map`` converted to dict
         - ``com.genestack.bridge.JsonNull`` converted to ``None``
-        - ``com.genestack.bridge.JsonExceptionWrapper`` raises exception, with error message from server
+        - ``com.genestack.bridge.JsonExceptionWrapper`` raises exception,
+          with error message from server
 
-    If serialized object is a ``dict``, ``JavaObject`` is returned;
+    If serialized object is a ``dict``, :py:class:`JavaObject`` is returned;
     otherwise serialized object is returned as it is.
 
     :param obj: deserialized JSON from server

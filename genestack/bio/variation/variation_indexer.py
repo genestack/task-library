@@ -7,11 +7,12 @@ import vcf
 
 from genestack import Indexer, GenestackException
 from genestack.bio.reference_genome.reference_genome_file import ReferenceGenome
-from genestack.metainfo import StringValue
+from genestack.metainfo import StringValue, Metainfo
 from genestack.utils import normalize_contig_name
 
-DATA_LINK = 'genestack.url:data'
-DATA_LOCATION = 'genestack.location:data'
+# FIXME find usages and remove this constants from here
+DATA_LINK = Metainfo.DATA_URL
+DATA_LOCATION = Metainfo.DATA_LOCATION
 
 EFF_FIELDS = ['Effect', 'Effect_Impact', 'Functional_Class', 'Codon_Change',
               'Amino_Acid_Change', 'Amino_Acid_length', 'Gene_Name',

@@ -2,6 +2,7 @@
 
 from genestack import File, GenestackException, StorageUnit
 from genestack.compression import gzip_file, decompress_file
+from genestack.metainfo import Metainfo
 from genestack.query_range import QueryRange
 from genestack.java import java_object, JAVA_LIST
 
@@ -41,8 +42,10 @@ class DictionaryFileQuery(object):
 class DictionaryFile(File):
     INTERFACE_NAME = 'com.genestack.api.files.IDictionaryFile'
 
-    DATA_LOCATION = 'genestack.location:data'
-    DATA_LINK = 'genestack.url:data'
+    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_URL = Metainfo.DATA_URL
+    # Deprecated use DATA_URL instead
+    DATA_LINK = DATA_URL
 
     # Key to store list of relation types that present in dictionary
     # Each type should be added as StringValue

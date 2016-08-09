@@ -19,6 +19,20 @@ AVAILABLE_COMPRESSIONS = (UNCOMPRESSED, BZIP2, GZIP, ZIP)
 
 
 def get_file_compression(file_name):
+    """
+    Return constant that represents compression of the file.
+
+    :py:attr:`ZIP` zip compression
+    :py:attr:`BZIP2` bgzip2 compression
+    :py:attr:`GZIP` gzip
+    :py:attr:`UNCOMPRESSED` file is not compress by any of previous compression
+
+    :param file_name: filename
+    :type file_name: str
+    :return: return compression constant
+    :rtype: str
+    """
+
     if file_name.endswith(('.gz', '.bgz')):
         # .bgz is our extension to gzip files created by TABIX,
         # This is valid gzip but we use a different extension to avoid clashes on backend.
@@ -32,6 +46,16 @@ def get_file_compression(file_name):
 
 
 def get_compression(files):
+    """
+    Return compression for group of files.
+    If compression is not the same for all files,
+    :py:class:`~genestack.GenestackException` is raised.
+
+    :param files: list of files
+    :type files: list[str]
+    :return: compression constant
+    :rtype: str
+    """
     compressions = {get_file_compression(name) for name in files}
     if len(compressions) != 1:
         raise GenestackException('All files must have the same compression, different compressions detected: %s' %
@@ -44,8 +68,11 @@ def _pipe(source_path, list_of_commands, output_path):
     Pipes commandlines together. Works like:
        `cat source_path > arg[0] [| args[1] | ...] > output_path`
     :param source_path: path of source file, file must exist
+    :type source_path: str
     :param list_of_commands: list of command arguments that should be piped
+    :type list_of_commands: list[str]
     :param output_path: path for the output file
+    :type output_path: str
     :return: None
     """
     with open(source_path) as source, open(output_path, 'wb') as output:
@@ -72,11 +99,17 @@ def compress_file(source, from_compression, to_compression, working_dir, remove_
     ``UNCOMPRESSED`` was specified.
 
     :param source: path to existing file to be compressed
+    :type source: str
     :param from_compression: compression from
+    :type from_compression: str
     :param to_compression: compression to
-    :param working_dir: path there new file will be stored
+    :type to_compression: str
+    :param working_dir: directory to copy files into, default is current directory
+    :type working_dir: str
     :param remove_source: flag if source file should be removed. Default ``True``
+    :type remove_source: bool
     :return: compressed file path
+    :rtype: str
     """
     if from_compression == to_compression:
         return source

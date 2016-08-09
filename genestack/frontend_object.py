@@ -2,7 +2,7 @@
 
 # import logging
 import os
-from genestack.java import JAVA_STRING
+from genestack.java import JAVA_STRING, JAVA_LIST
 from genestack import GenestackException
 from genestack.metainfo import MetainfoValue, Metainfo
 from genestack.utils import log_warning, to_list, unbuffer_stdout, validate_type
@@ -131,21 +131,24 @@ class GenestackObject(object):
 
         :param key: metainfo Key
         :type key: str
-        :param value: metainfo value
-        :type value: MetainfoValue
+        :param value: metainfo value or list of metainfo values
+        :type value: MetainfoValue | list[MetainfoValue]
         :param flag: flag to set on the key (choose from ``Metainfo.Flag``) ; can be `None`
         :type flag: int
         :raise GenestackException:
 
         """
         validate_type(key, basestring)
-        validate_type(value, MetainfoValue, accept_none=True)
+        value_list = to_list(value)
+        for val in value_list:
+            validate_type(val, MetainfoValue, accept_none=True)
+        java_value = java_object(MetainfoValue.METAINFO_LIST_VALUE, {"list": java_object(JAVA_LIST, value_list)})
         if flag is not None:
             self.set_metainfo_flags(key, flag)
         self.invoke(
             'addMetainfoValue',
             types=[JAVA_STRING, 'com.genestack.api.metainfo.IMetainfoValue'],
-            values=[key, value]
+            values=[key, java_value]
         )
 
     def replace_metainfo_value(self, key, value, flag=Metainfo.Flag.SET_BY_INITIALIZATION):
@@ -212,9 +215,9 @@ class GenestackObject(object):
         :param key: matainfo key
         :type key: str
         :param filetype: expected return class, must be subclass of File
-        :type filetype: type
+        :type filetype: T
         :return: instance of File or it subclass.
-        :rtype: GenestackObject
+        :rtype: T()
         """
         raise GenestackException('Not implemented for object: %s' % self.interface_name)
 

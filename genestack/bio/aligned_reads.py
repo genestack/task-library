@@ -5,6 +5,7 @@ from tempfile import mkdtemp
 
 from genestack import File, StorageUnit, GenestackException
 from genestack.cla import CLA
+from genestack.metainfo import Metainfo
 from genestack.utils import get_cpu_count
 
 
@@ -38,7 +39,7 @@ class AlignedReads(File):
     FEATURES_FILE_LOCATION = 'genestack.location:features-annotation'
 
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    SOURCE_KEY = 'genestack.bio:sourceData'
+    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def get_bam_file(self, working_dir=None):
         units = self.GET(self.BAM_FILE_LOCATION, working_dir=working_dir)

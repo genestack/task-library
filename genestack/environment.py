@@ -5,7 +5,8 @@
 # scripts/deploy/config/*/environment.py
 import os
 
-PROXY_URL = 'http://localhost:8888'
+
+PROXY_URL = 'http://{}:8888'.format(os.environ.get("TASK_HOST_IP", "localhost"))
 
 SYSTEM_DIRECTORY = '/var/genestack/Servers/filesystem'
 PROGRAMS_DIRECTORY = SYSTEM_DIRECTORY + '/programs'

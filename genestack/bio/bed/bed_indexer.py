@@ -48,11 +48,12 @@ FEATURE_POSSIBLE_LENGTH = [3, 4, 5, 6, 8, 9, 12]
 
 def validate_feature(feature):
     """
-    Make single feature validation, raises GenestackException
-    Args:
-        feature: list of fields
-    Raises:
-        GenestackException
+    Make single feature validation, raises :py:class:`~genestack.GenestackException`.
+
+    :param feature: list of fields
+    :type feature: list[str]
+
+    raises: GenestackException
     """
     feature_length = len(feature)
 

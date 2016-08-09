@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
+import json
 import os
 import requests
 import sys
 
 from genestack import GenestackException, environment
-from genestack.java import decode_object, JavaObject
+from genestack.java import decode_object
 
 
 class _Bridge(object):
@@ -123,9 +123,38 @@ class _Bridge(object):
             'working_dir': working_dir,
         })
 
+    # we limit maximum sent json size to 5 Mb
+    _MAX_CONTENT_SIZE = 5 * 10 ** 6
+
     @staticmethod
     def send_index(obj, values):
-        _Bridge._send_request('dataindex', {
-            'id': obj.object_id,
-            'values': [] if values is None else values
-        })
+        for chunk in _Bridge.__get_value_chunks(values):
+            _Bridge._send_request('dataindex', {
+                'object_id': obj.object_id,
+                'values': chunk,
+                'interface_name': obj.interface_name
+            })
+
+    @staticmethod
+    def __get_value_chunks(values):
+        if not values:
+            return [[]]
+
+        def chunks(chunks_num):
+            chunk_size = divide(len(values), chunks_num)
+            return (values[i:i + chunk_size] for i in xrange(0, len(values), chunk_size))
+
+        def divide(x, y):
+            import math
+            return int(math.ceil(x / float(y)))
+
+        # this is not a very accurate approach, we should use a different one if the json size gets too big
+        json_size = len(json.dumps(values[0]))
+        if json_size > _Bridge._MAX_CONTENT_SIZE:
+            raise GenestackException('JSON is too large: %d bytes' % json_size)
+
+        size = json_size * len(values)
+        if size > _Bridge._MAX_CONTENT_SIZE:
+            chunks_num = divide(size, _Bridge._MAX_CONTENT_SIZE)
+            return chunks(chunks_num)
+        return [values]

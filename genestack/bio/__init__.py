@@ -2,8 +2,8 @@
 
 from genestack.bio.experiment import Experiment
 from genestack.bio.aligned_reads import AlignedReads
-from genestack.bio.bed.bed_file import BED
 from genestack.bio.bed.bed_indexer import BEDIndexer
+from genestack.bio.bed.bed_file import BED
 from genestack.bio.bio_data_file import BioDataFile
 from genestack.bio.genome_interval import GenomeInterval
 from genestack.bio.genome_query import GenomeQuery
@@ -19,4 +19,4 @@ from genestack.bio.wig.wig_indexer import WIGIndexer
 from genestack.bio.codon_table import CodonTable
 from genestack.bio.genome_annotation import GenomeAnnotation
 from genestack.bio.external_database import ExternalDatabase
-
+from genestack.bio.differential_expression import DifferentialExpression

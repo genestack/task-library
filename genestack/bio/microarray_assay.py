@@ -2,6 +2,7 @@
 
 from genestack import File
 from genestack.compression import decompress_file
+from genestack.metainfo import Metainfo
 
 
 class MicroarrayAssay(File):
@@ -13,7 +14,7 @@ class MicroarrayAssay(File):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.IMicroarrayAssay'
 
-    DATA_LOCATION = 'genestack.location:data'
+    DATA_LOCATION = Metainfo.DATA_LOCATION
 
     def get_data_file(self, working_dir=None, decompressed=False):
         units = self.GET(self.DATA_LOCATION, working_dir=working_dir)

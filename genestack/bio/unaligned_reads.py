@@ -6,7 +6,7 @@ from tempfile import mkdtemp
 
 from genestack import File, StorageUnit, GenestackException
 from genestack.compression import get_compression, AVAILABLE_COMPRESSIONS, UNCOMPRESSED, gzip_file
-from genestack.metainfo import BooleanValue
+from genestack.metainfo import BooleanValue, Metainfo
 from genestack.utils import is_empty_file, to_list, FormatPattern
 
 
@@ -46,7 +46,7 @@ class UnalignedReads(File):
 
     READS_LOCATION = 'genestack.location:reads'
     HAS_PAIRED_READS = "genestack.bio:hasPairedReads"
-    SOURCE_KEY = 'genestack.bio:sourceData'
+    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     class Key(object):
         SPACE = 'space'
