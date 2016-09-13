@@ -89,10 +89,18 @@ class GenestackObject(object):
                         " attempting to convert" % (interface_name,
                                                     pformat(object_id)))
         try:
-            self.object_id = int(object_id)
+            self.__object_id = int(object_id)
         except ValueError:
             raise GenestackException('Object ID is invalid: %s' % object_id)
-        self.interface_name = interface_name
+        self.__interface_name = interface_name
+
+    @property
+    def object_id(self):
+        return self.__object_id
+
+    @property
+    def interface_name(self):
+        return self.__interface_name
 
     @property
     def bridge(self):
@@ -103,6 +111,9 @@ class GenestackObject(object):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash((self.interface_name, self.object_id))
 
     def invoke(self, method_name, types=None, values=None):
         return self.bridge.invoke(self.object_id, self.interface_name, method_name, types, values)
@@ -217,7 +228,7 @@ class GenestackObject(object):
         :param filetype: expected return class, must be subclass of File
         :type filetype: T
         :return: instance of File or it subclass.
-        :rtype: T()
+        :rtype: T
         """
         raise GenestackException('Not implemented for object: %s' % self.interface_name)
 

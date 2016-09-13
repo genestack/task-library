@@ -1,69 +1,71 @@
 # -*- coding: utf-8 -*-
+import os
 
-from zipfile import ZipFile, ZIP_DEFLATED
 
-
-class FastaZipDumper(object):
+class FastaDumper(object):
     """
-    used to dump fasta data to file.
+    Class for dumping fasta data to file.
 
-    for each contig in fasta files we make new file with <contig_name>.zip
+    Create a files name composed from contig name followed by
+     the index of this file among all files for the contig.
 
-    zip entries named for number of BUFFER_SIZE added.
-
-    for example 5th nucleotide is inside "0" file, 10005th is inside "1" file etc.
+    Example: 5th nucleotide of Chromosome will be placed in a file called "Chromosome_0",
+     10005th  will be placed in a file called "Chromosome_1" file etc.
     """
     BUFFER_SIZE = 10000
 
-    def __init__(self):
-        self.current_file = None
+    def __init__(self, current_folder):
+        self.current_folder = current_folder
+        self.prefix = None
         self.buffer = ''
         self.index = 0
 
     def _dump(self):
         """
-        If buffer is empty this method does nothing;
-        otherwise dumps buffer to the next ZIP entry named with current `index`
-        value and increments `index` value by 1.
-        Method writes self.BUFFER_SIZE symbols from buffer (or the whole buffer
-        if its size is less than self.BUFFER_SIZE).
+        Dump buffer to the file in current folder named with ``index`` value and
+        increment ``index`` value by 1.
+
+        If buffer is empty does nothing,
+        If buffer is bigger then self.BUFFER_SIZE, dump only self.BUFFER_SIZE.
         """
-        if not self.buffer or not self.current_file:
+        if not self.buffer or not self.prefix:
             return
-        self.current_file.writestr(
-            str(self.index),
-            self.buffer[:self.BUFFER_SIZE],
-            ZIP_DEFLATED
-        )
+        file_name = '%s_%s' % (self.prefix, self.index)
+        with open(os.path.join(self.current_folder, file_name), 'w') as f:
+            f.write(self.buffer[:self.BUFFER_SIZE])
         self.index += 1
         self.buffer = self.buffer[self.BUFFER_SIZE:]
 
     def flush(self):
         """
-        Saves all data from buffer to file. Close file.
-        :return:
+        Save all data from buffer to file.
+
+        :return: None
         """
-        if self.current_file:
+        if self.prefix:
             self._dump()
             self.index = 0
-            self.current_file.close()
-            self.current_file = None
+            self.prefix = None
 
-    def set(self, file_path):
+    def set(self, prefix):
         """
-        Flush current file and set new current file.
+        Flush current data and set new suffix.
 
-        :param file_path: path to the new file to open
+        :param prefix: current contig name
+        :type prefix: str
+        :return: None
         """
         self.flush()
-        self.current_file = ZipFile(file_path, 'w')
+        self.prefix = prefix
 
     def add(self, text):
         """
-        Add chunk of data to the current file.
-        If total length of all chunks in buffer is more then self.BUFFER_SIZE
-        dumps it to file.
+        Add chunk of data to the current folder.
+        If total length of all chunks in buffer is greater than self.BUFFER_SIZE
+        then they will be dumped into a file.
+
         :param text: text to dump
+        :type text: str
         """
         self.buffer += text
         if len(self.buffer) > self.BUFFER_SIZE:

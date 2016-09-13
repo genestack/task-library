@@ -6,9 +6,9 @@ import traceback
 # TODO fix imports to use import from bio
 from genestack.genestack_exceptions import GenestackException
 from genestack.frontend_object import StorageUnit
+from genestack.core_files.genestack_file import File
 from genestack.cla import CLA, Toolset, Tool
 from genestack.genestack_indexer import Indexer
-from genestack.core_files.genestack_file import File
 from genestack.core_files.genestack_folder import Folder, ContainerFileQuery, CoreFileType, BioFileType
 from genestack.core_files.auxiliary_file import AuxiliaryFile
 from genestack.core_files.dictionary_file import DictionaryFile, DictionaryFileQuery

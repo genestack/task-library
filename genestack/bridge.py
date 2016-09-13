@@ -61,7 +61,7 @@ class _Bridge(object):
         }
         response_data = _Bridge._send_request('invoke', data)
         decoded = decode_object(response_data)
-        return decoded
+        return decoded[0]
 
     @staticmethod
     def get(obj, key, format_pattern, working_dir):

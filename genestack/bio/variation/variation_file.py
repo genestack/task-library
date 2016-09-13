@@ -45,6 +45,7 @@ class Variation(ReportFile):
         :type path: str
         :rtype: None
         """
+
         compressed_data_file = self.__create_compressed_data_file(path)
         tabix = self.__create_tabix(compressed_data_file)
         num_of_variants = self.__get_number_of_variants(compressed_data_file)
@@ -75,6 +76,7 @@ class Variation(ReportFile):
         :return: path to the compressed archive
         :rtype: str
         """
+
         compressed_file = data_file_path + '.bgz'
         bgzip = CLA(self).get_tool('bcftools', 'bgzip')
         bgzip.run(['-c', pipes.quote(data_file_path), '>', pipes.quote(compressed_file)])
@@ -90,9 +92,9 @@ class Variation(ReportFile):
         :return: path to the built index
         :rtype: str
         """
-        index_file = data_file_path + '.tbi'
+
         CLA(self).get_tool('bcftools', 'bcftools').run(['index', '-t', pipes.quote(data_file_path)])
-        return index_file
+        return data_file_path + '.tbi'
 
     def __get_number_of_variants(self, data_file_path):
         bcftools = CLA(self).get_tool('bcftools', 'bcftools')
@@ -109,6 +111,7 @@ class Variation(ReportFile):
         :return: path to the index archive
         :rtype: str
         """
+
         indexer = utils.get_java_tool('genestack-vcf-indexer')
         index_folder = os.path.join(os.path.dirname(data_file_path), data_file_path + '.index')
 

@@ -3,14 +3,18 @@
 import os
 import shutil
 import json
+import subprocess
 
-from genestack.bio.reference_genome.dumper import FastaZipDumper
 from genestack import StorageUnit, Indexer
+from genestack.bio.reference_genome.dumper import FastaDumper
+from genestack.metainfo import StringValue
 from genestack.utils import opener, DumpData, normalize_contig_name
 
 
 def get_qualifier(feature, attribute_key):
     return feature.qualifiers.get(attribute_key, [None])[0]
+
+INDEXING_VERSION = 'genestack.indexing:version'
 
 
 class Gene(object):
@@ -84,6 +88,13 @@ class ReferenceGenomeIndexer:
     INDEX_FASTA_CACHE_LOCATION = 'genestack.location:index_fasta_cache'
 
     def __init__(self, genome, result_dir='result'):
+        """
+        :param genome:
+        :type genome: genestack.bio.ReferenceGenome
+        :param result_dir: directory to store files
+        :type result_dir: str
+        :return:
+        """
         # setup paths:
         self.genome = genome
         self.result_dir = result_dir
@@ -186,8 +197,21 @@ class ReferenceGenomeIndexer:
         return feature_list
 
     def processing_fasta(self, source_fasta_file_list):
+        """
+        Create index for fasta file.
+
+        A zip archive with files,
+        which names are composed using a normalized contig name and a number starting from "0".
+        Each file contains 10000 nucleotides or less.
+
+        Fill list of contigs that will be use for annotation indexing.
+
+        :param source_fasta_file_list: list fo source fasta file paths
+        :type source_fasta_file_list: list[str]
+        :return: None
+        """
         items = []
-        fasta_dumper = FastaZipDumper()
+        fasta_dumper = FastaDumper(self.result_fasta_cache_folder)
 
         for file_name in source_fasta_file_list:
             offset = 0
@@ -199,13 +223,17 @@ class ReferenceGenomeIndexer:
                         offset += len(line)
                         items.append([name, 0])
                         self.allowed_contigs.add(name)
-                        dump_file = '%s.zip' % normalize_contig_name(name)
-                        fasta_dumper.set(os.path.join(self.result_fasta_cache_folder, dump_file))
+                        fasta_dumper.set(normalize_contig_name(name))
                     else:
                         res = line.strip()
                         items[-1][1] += len(res)
                         fasta_dumper.add(res)
         fasta_dumper.flush()
+
+        archive_name = self.result_fasta_cache_folder + '.zip'
+        cmd = ['zip', '-rjq', archive_name, self.result_fasta_cache_folder]
+        subprocess.check_call(cmd)
+
         items.sort(key=lambda x: x[0])
         dd = DumpData()
         for name, length in items:
@@ -213,9 +241,10 @@ class ReferenceGenomeIndexer:
             dd.put_long(length)
         with open(self.result_fasta_contigs_index_path, 'wb') as fasta_dump_file:
             dd.dump_to_file(fasta_dump_file)
-        self.genome.PUT(self.INDEX_FASTA_CACHE_LOCATION, StorageUnit(self.result_fasta_cache_folder))
+        self.genome.PUT(self.INDEX_FASTA_CACHE_LOCATION, StorageUnit(archive_name))
         self.genome.PUT(self.INDEX_FASTA_LOCATION, StorageUnit(self.result_fasta_contigs_index_path))
 
     def create_index(self, fasta_paths, annotation_path):
+        self.genome.add_metainfo_value(INDEXING_VERSION, StringValue('2'))
         self.processing_fasta(fasta_paths)
         self.index_features(annotation_path)

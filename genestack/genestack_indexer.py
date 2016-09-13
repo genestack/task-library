@@ -2,10 +2,9 @@
 import string
 
 from multiprocessing.dummy import Pool
-import traceback
 
 from genestack import GenestackException
-
+from genestack.utils import log_warning
 
 _SOLR_ALLOWED_CHARS = set(string.ascii_letters + string.digits + '_')
 
@@ -27,12 +26,12 @@ class Key(object):
 
 
     Key consist of 3 parts:
-      - `prefix` helps to separate keys for special implementation-specififc purposes 
-        (like 'search'), may be empty, can contain only ASCII alphanumeric characters 
+      - `prefix` helps to separate keys for special implementation-specififc purposes
+        (like 'search'), may be empty, can contain only ASCII alphanumeric characters
         and underscore
-      - `name` name of the key, must be unique for all keys with the same `prefix`, 
+      - `name` name of the key, must be unique for all keys with the same `prefix`,
         may be empty if prefix is specified, can contain any characters
-      - `suffix` contains index-specific information about the key, 
+      - `suffix` contains index-specific information about the key,
         can contain only ASCII alphanumeric characters and underscore
 
     Example:
@@ -100,7 +99,7 @@ class Indexer(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__inside_context = False
-        if self.__indexing_recent_response is not None:
+        if exc_type is None and self.__indexing_recent_response is not None:
             self.__indexing_recent_response.get()
 
     def index_records(self, records_list):
@@ -124,7 +123,7 @@ class Indexer(object):
             try:
                 return self.__file.send_index(*args, **kwargs)
             except:
-                traceback.print_exc()
+                log_warning('Fail to send index.')
                 raise
         new_records = [_make_record(record) for record in records_list]
 

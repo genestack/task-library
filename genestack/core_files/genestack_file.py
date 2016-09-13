@@ -61,6 +61,19 @@ class File(GenestackObject):
     PROGRESS_INFO = "genestack:progressInfo"
     INTERFACE_NAME = 'com.genestack.api.files.IFile'
 
+    def export(self, folder):
+        """
+        Get files with data for export to `folder`.
+
+        Return list of paths to file data (files or folders).
+
+        :param folder: folder to store files, if folder is not exists it will be created
+        :type folder: str
+        :return: list of file names
+        :rtype: list[str]
+        """
+        raise NotImplementedError('Not implemented for %s' % self.__class__.__name__)
+
     def __init__(self, file_id=None):
         if file_id is None:
             file_id = int(sys.argv[1])
@@ -80,7 +93,7 @@ class File(GenestackObject):
         :param filetype: expected return class, must be subclass of File
         :type filetype: T
         :return: list of File or it subclass instances.
-        :rtype: list[T()]
+        :rtype: list[T]
         """
         filetype = checked_filetype(filetype)
         return [self.__resolve_reference(key, ref, filetype)
@@ -95,7 +108,7 @@ class File(GenestackObject):
         :param filetype: expected return class, must be subclass of File
         :type filetype: T
         :return: instance of File or it subclass
-        :rtype: T()
+        :rtype: T
         """
         return self.__resolve_reference(
             key,
@@ -110,11 +123,11 @@ class File(GenestackObject):
         :param key: reference key
         :type key: str
         :param file_reference:
-        :type file_reference: FileReference
+        :type file_reference: FileReference | None | list
         :param filetype: type of return file
         :type filetype: T
         :return: instance of the filetype
-        :rtype: T()
+        :rtype: T
         """
         if not isinstance(file_reference, FileReference):
             raise GenestackException(

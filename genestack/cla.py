@@ -4,32 +4,199 @@ import os
 import subprocess
 import sys
 import time
+from contextlib import contextmanager
+from select import select
+from subprocess import PIPE
 
+from plumbum import local
+from plumbum.commands import ExecutionModifier
+from plumbum.lib import read_fd_decode_safely
+from plumbum.machines import LocalCommand
+
+from genestack.environment import PROGRAMS_DIRECTORY
 from genestack.utils import join_program_path, log_info, log_warning, format_tdelta
-from genestack import GenestackException
+from genestack import GenestackException, File
 
-PARAMS_KEY = 'genestack:tool.arguments'
+
+class RUN(ExecutionModifier):
+    """
+    An execution modifier that runs the given command in the foreground,
+    passing it to the current process `stdout` and `stderr`.
+    Add log markers to `stdout` and `stderr` if ``verbose``.
+    """
+    __slots__ = ('stdout', 'verbose')
+
+    def __init__(self, stdout=None, verbose=True):
+        self.stdout = stdout
+        self.verbose = verbose
+
+    def __rand__(self, cmd):
+        with _print_command_info(cmd, self.verbose):
+            if self.stdout:
+                cmd = cmd > self.stdout
+            cmd(stdout=None, stderr=None)
+
+
+class OUTPUT(ExecutionModifier):
+    """
+    An execution modifier that runs the given command in the foreground,
+    passing it to the current process `stdout` and `stderr`.
+    Add log markers to `stdout` and `stderr` if ``verbose``.
+    """
+    __slots__ = ('stdout', 'verbose')
+
+    def __init__(self, verbose=True):
+        self.verbose = verbose
+
+    def __rand__(self, cmd):
+        with _print_command_info(cmd, True), cmd.bgrun(stdin=None, stdout=PIPE, stderr=None) as p:
+            outbuf = []
+            out = p.stdout
+            while p.poll() is None:
+                ready, _, _ = select((out,), (), ())
+                for fd in ready:
+                    data, text = read_fd_decode_safely(fd, 4096)
+                    if not data:  # eof
+                        continue
+                    # And then "unbuffered" is just flushing after each write
+                    outbuf.append(text)
+            return ''.join(outbuf)
+
+
+RUN = RUN()
+OUTPUT = OUTPUT()
+
+_toolset_inited = False
+_toolsets = {}
+_arguments = []
+
+
+def _init_toolsets():
+    global _toolset_inited
+    if not _toolset_inited:
+        params_key = 'genestack:tool.arguments'
+        version_prefix = 'genestack:tool.version:'
+        mi = File().get_metainfo()
+        _arguments.extend(x.value for x in mi.get_value_as_list(params_key))
+        versions = {k[len(version_prefix):]: mi.get(k).value for k in mi if k.startswith(version_prefix)}
+        _toolsets.update({k: Toolset(k, v, verbose=True) for k, v in versions.items()})
+        _toolset_inited = True
+
+
+def get_argument_string():
+    """
+    Return argument string for CLA that uses only single command line.
+    If more than one command found raises :py:class:`~genestack.GenestackException`,
+    use :py:meth:`get_argument_string_list` in that case
+
+    :return: argument string
+    :rtype: str
+    """
+    _init_toolsets()
+    if not _arguments:
+        return ''
+    if len(_arguments) == 1:
+        return _arguments[0]
+    else:
+        raise GenestackException('Too many arguments found, use get_argument_string_list')
+
+
+def get_argument_string_list():
+    """
+    Return list of the argument strings.
+    If more than one command found raises :py:class:`~genestack.GenestackException`
+
+    :return: list of argument strings
+    :rtype: list[str]
+    """
+    _init_toolsets()
+    return list(_arguments)
+
+
+def _get_tool(toolset, tool, verbose=True):
+    """
+    Return Tool instance.
+
+    :type toolset: str
+    :type tool: str
+    :rtype: Tool
+    """
+    _init_toolsets()
+    toolset = _toolsets.get(toolset)
+    if toolset is None:
+        raise GenestackException("Tool version should be set in file metainfo")
+    toolset.verbose = verbose
+    return toolset.get_tool(tool)
+
+
+def get_command(toolset, tool, uses=None):
+    """
+    Return command with path and required environment.
+    See plumbum docs for more info http://plumbum.readthedocs.io/en/latest/#
+
+    :param toolset: toolset name
+    :type toolset: str
+    :param tool: tool name
+    :type tool: str
+    :param uses: list of toolset names to be added to PATH
+    :type uses: list[str]
+    :return: command to run tool
+    :rtype: plumbum.commands.base.BoundEnvCommand | plumbum.machines.LocalCommand
+    """
+
+    tool = _get_tool(toolset, tool)
+    cmd = tool.get_tool_command()
+
+    if uses:
+        # TODO make proper message if toolset is not present
+        path = local.env['PATH'] + ':' + ':'.join([_toolsets[x].get_directory() for x in uses])
+        cmd = cmd.with_env(PATH=path)
+    return cmd
+
+
+def get_command_path(toolset, tool):
+    """
+    Return path to command executable.
+
+    :param toolset: toolset name
+    :type toolset: str
+    :param tool: tool name
+    :type tool: str
+    :return:
+    """
+    tool = _get_tool(toolset, tool)
+    return tool.get_executable_path()
+
+
+@contextmanager
+def _print_command_info(command, verbose):
+    if verbose:
+        start_message = 'Start: %s' % str(command).replace(PROGRAMS_DIRECTORY + '/', '', 1)
+        log_info(start_message)
+        log_warning(start_message)
+        start = time.time()
+        yield
+        tdelta = format_tdelta(time.time() - start)
+        exit_msg = 'Command run finished, %s elapsed' % tdelta
+        log_info(exit_msg)
+        log_warning(exit_msg)
+        return
+    yield
+    return
 
 
 class CLA(object):
     def __init__(self, a_file):
-        self.__metainfo = a_file.get_metainfo()
-
-    def get_tool(self, toolset, tool, verbose=True):
-        version_key = 'genestack:tool.version:' + toolset
-        version_value = self.__metainfo.get(version_key)
-        version = version_value.value if version_value is not None else None
-        if version is None:
-            raise GenestackException("Tool version should be set in file metainfo")
-        return Toolset(toolset, version, verbose=verbose).get_tool(tool)
+        pass
 
     def argument_string(self):
-        value = self.__metainfo.get(PARAMS_KEY)
-        return value.value if value is not None else ''
+        return get_argument_string()
 
     def argument_string_list(self):
-        values = self.__metainfo.get_value_as_list(PARAMS_KEY)
-        return [v.value for v in values]
+        return get_argument_string_list()
+
+    def get_tool(self, toolset, tool, verbose=True):
+        return _get_tool(toolset, tool, verbose=verbose)
 
 
 class Toolset(object):
@@ -164,8 +331,8 @@ class Tool(object):
         except subprocess.CalledProcessError as e:
             print e.output
             raise GenestackException(
-                    'Command "%s" returned non-zero exit status %d' % (
-                        self.get_executable_name(), e.returncode))
+                'Command "%s" returned non-zero exit status %d' % (
+                    self.get_executable_name(), e.returncode))
         finally:
             if verbose:
                 self.__log_finish()
@@ -192,3 +359,12 @@ class Tool(object):
     @property
     def version(self):
         return self.__toolset.version
+
+    def get_tool_command(self):
+
+        if self.__executable.endswith('.py'):
+            command = local['python'][self.get_executable_path()]
+        else:
+            with local.env(PATH=self.get_directory()):
+                command = local[self.__executable]
+        return command

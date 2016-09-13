@@ -4,7 +4,9 @@ from genestack import GenestackException
 
 JAVA_STRING = 'java.lang.String'
 JAVA_STRING_ARRAY = '[Ljava.lang.String;'
+JAVA_STRING_ARRAY_OF_ARRAYS = '[[Ljava.lang.String;'
 JAVA_OBJECT_ARRAY = '[Ljava.lang.Object;'
+JAVA_OBJECT_ARRAY_OF_ARRAYS = '[[Ljava.lang.Object;'
 JAVA_MAP = 'java.util.Map'
 JAVA_HASH_MAP = 'java.util.HashMap'
 JAVA_SET = 'java.util.Set'

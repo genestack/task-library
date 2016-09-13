@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
 
 from genestack import File
 from genestack.compression import decompress_file
 from genestack.metainfo import Metainfo
+from genestack.utils import makedirs_p
 
 
 class MicroarrayAssay(File):
@@ -22,3 +24,9 @@ class MicroarrayAssay(File):
         if decompressed:
             return decompress_file(data_file, working_dir)
         return data_file
+
+    def export(self, folder):
+        # TODO Should we pack files if not compressed?
+        if not os.path.exists(folder):
+            makedirs_p(folder)
+        return [self.get_data_file(working_dir=folder)]
