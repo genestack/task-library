@@ -24,14 +24,20 @@ class DictionaryFileQuery(object):
         if query_type not in DictionaryFileQuery.QueryType.VALID_TYPES:
             raise GenestackException("Invalid query type (must be one of the types defined in `DictionaryFileQuery.QueryType`)")
 
-        self._query_string = query_string
+        if isinstance(query_string, basestring):
+            self._query_strings = [query_string]
+        elif isinstance(query_string, list):
+            self._query_strings = query_string
+        else:
+            raise GenestackException("Invalid queryString type)")
+
         self._query_type = query_type
         self._range = QueryRange(offset, limit, self.MAX_LIMIT)
         self.attributes = attributes or []
 
     def get_java_object(self):
         query = {
-            'queryString': self._query_string,
+            'queryStrings': java_object(JAVA_LIST, self._query_strings),
             'queryType': self._query_type,
             'range': self._range.as_java_object(),
             'attributes':  java_object(JAVA_LIST, self.attributes)
@@ -47,6 +53,8 @@ class DictionaryFile(File):
     # Deprecated use DATA_URL instead
     DATA_LINK = DATA_URL
 
+    # Key to store reference to parent dictionary
+    PARENT_DICTIONARY = 'genestack.dictionary:parent'
     # Key to store list of relation types that present in dictionary
     # Each type should be added as StringValue
     RELATIONS_KEY = 'genestack.dictionary:relations'
