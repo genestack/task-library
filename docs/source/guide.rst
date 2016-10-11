@@ -123,7 +123,7 @@ There are several ways of executing commands.
              contain a lot of data.
 
 If the tool you're using requires to have some other tools available,
-you can add it with the ``uses=[...]`` argument to :py:meth:`~genestack.cla.get_tool`
+you can add them with the ``uses=[...]`` argument to :py:meth:`~genestack.cla.get_tool`
 
 .. code-block:: python
 

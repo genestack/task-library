@@ -119,6 +119,6 @@ The following script shows how to subsample an input unaligned reads file (using
 
 Then, ``genestack.cla`` module allows us to do two things:
 
-    - retrieve an tool for ``seqtk``
+    - retrieve a tool for ``seqtk``
     - get the file's command-line strings from its metainfo
 
