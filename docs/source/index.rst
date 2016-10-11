@@ -23,6 +23,7 @@ Table of Contents
 
    initialization_script
    guide
+   cla
    tools
    api_reference
    autocomplete
