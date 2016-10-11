@@ -5,17 +5,14 @@ import subprocess
 import sys
 import time
 from contextlib import contextmanager
-from select import select
 from subprocess import PIPE
+
+from genestack import GenestackException, File
+from genestack.environment import PROGRAMS_DIRECTORY
+from genestack.utils import join_program_path, log_info, log_warning, format_tdelta, deprecated
 
 from plumbum import local
 from plumbum.commands import ExecutionModifier
-from plumbum.lib import read_fd_decode_safely
-from plumbum.machines import LocalCommand
-
-from genestack.environment import PROGRAMS_DIRECTORY
-from genestack.utils import join_program_path, log_info, log_warning, format_tdelta
-from genestack import GenestackException, File
 
 
 class RUN(ExecutionModifier):
@@ -40,27 +37,17 @@ class RUN(ExecutionModifier):
 class OUTPUT(ExecutionModifier):
     """
     An execution modifier that runs the given command in the foreground,
-    passing it to the current process `stdout` and `stderr`.
+    returns its `stdout` as string and passing its `stderr` to the current process `stderr`.
     Add log markers to `stdout` and `stderr` if ``verbose``.
     """
-    __slots__ = ('stdout', 'verbose')
+    __slots__ = ('verbose',)
 
     def __init__(self, verbose=True):
         self.verbose = verbose
 
     def __rand__(self, cmd):
         with _print_command_info(cmd, True), cmd.bgrun(stdin=None, stdout=PIPE, stderr=None) as p:
-            outbuf = []
-            out = p.stdout
-            while p.poll() is None:
-                ready, _, _ = select((out,), (), ())
-                for fd in ready:
-                    data, text = read_fd_decode_safely(fd, 4096)
-                    if not data:  # eof
-                        continue
-                    # And then "unbuffered" is just flushing after each write
-                    outbuf.append(text)
-            return ''.join(outbuf)
+            return p.run()[1]
 
 
 RUN = RUN()
@@ -129,7 +116,12 @@ def _get_tool(toolset, tool, verbose=True):
     return toolset.get_tool(tool)
 
 
+@deprecated('use "get_tool" instead')
 def get_command(toolset, tool, uses=None):
+    return get_tool(toolset, tool, uses=uses)
+
+
+def get_tool(toolset, tool, uses=None):
     """
     Return command with path and required environment.
     See plumbum docs for more info http://plumbum.readthedocs.io/en/latest/#
@@ -154,9 +146,14 @@ def get_command(toolset, tool, uses=None):
     return cmd
 
 
+@deprecated('use "get_tool_path" instead')
 def get_command_path(toolset, tool):
+    return get_tool_path(toolset, tool)
+
+
+def get_tool_path(toolset, tool):
     """
-    Return path to command executable.
+    Return path to tool executable.
 
     :param toolset: toolset name
     :type toolset: str
@@ -166,6 +163,18 @@ def get_command_path(toolset, tool):
     """
     tool = _get_tool(toolset, tool)
     return tool.get_executable_path()
+
+
+def get_directory(toolset):
+    """
+    Return directory where executables are located.
+
+    :param toolset: toolset name
+    :type toolset: str
+    :return: directory where executables are located
+    :rtype: str
+    """
+    return _toolsets[toolset].get_directory()
 
 
 @contextmanager
