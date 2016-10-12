@@ -23,7 +23,9 @@ Modules that can be used in task nly for CPython
  .. include:: ../../requirements/scripts-cpython.pip
    :literal:
 
-Binaries
+.. _Toolsets:
+
+Toolsets
 ********
 
 We have various bioinformatics tools installed in our system.

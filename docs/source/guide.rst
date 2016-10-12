@@ -69,3 +69,100 @@ File types that inherit from ``StringMapFile``, such as ``ApplicationPageFile``,
 which can be accessed using an API similar to that of Java's ``Map`` interface.
 The main methods are :py:meth:`~genestack.StringMapFile.put` and :py:meth:`~genestack.StringMapFile.get`.
 See :py:class:`~genestack.StringMapFile` for the complete list of methods.
+
+
+Executing shell commands
+************************
+
+Plumbum
+-------
+
+To execute shell commands from initialization scripts, we use the `plumbum <https://plumbum.readthedocs
+.io/en/latest/>`_ library.
+
+Genestack gives you access to a wide range of :ref:`pre-installed bioinformatics
+third-party tools <Toolsets>`. For each tool that you use, you must specify the tool and its version in
+the file's metainfo before initialization.
+
+The method :py:meth:`~genestack.cla.get_tool`
+returns a plumbum `LocalCommand <https://plumbum.readthedocs.io/en/latest/local_commands.html#guide-local-commands>`_
+object.
+
+You can use
+`pipes <https://plumbum.readthedocs.io/en/latest/local_commands.html#guide-local-commands-pipelining>`_
+(``|``) and
+`redirects <https://plumbum.readthedocs.io/en/latest/local_commands.html#guide-local-commands-redir>`_
+(``>``) to combine commands.
+
+There are several ways of executing commands.
+
+    - Using Genestack execution modifiers
+        These modifiers write a start and end marks to the task logs.
+
+        - :py:attr:`~genestack.cla.RUN` runs a command in the foreground (same as :py:attr:`plumbum.FG`),
+          you can use the ``stdout`` argument if you need to redirect the result to a file.
+        - :py:attr:`~genestack.cla.OUTPUT` collects command stdout to a variable (like `__call__()`)
+
+          .. code-block:: python
+
+                samtools = get_tool('samtools', 'samtools')
+                header = samtools['view', '-H'] & OUTPUT
+
+        This is the preferred way of executing commands.
+
+    - Using `plumbum execution modifiers <http://plumbum.readthedocs.io/en/latest/_modules/plumbum/commands/modifiers.html/>`_
+
+    - Using parentheses:
+
+        .. code-block:: python
+
+            samtools = get_tool('samtools', 'samtools')
+            header = samtools['view', '-H']()
+
+.. warning:: This will return the ``stdout`` output of the command as a string. Do not use it if the output can
+             contain a lot of data.
+
+If the tool you're using requires to have some other tools available,
+you can add them with the ``uses=[...]`` argument to :py:meth:`~genestack.cla.get_tool`
+
+.. code-block:: python
+
+    tophat_tool = get_tool('tophat', 'tophat', uses=['bowtie2', 'samtools'])
+
+
+Example
+-------
+
+Let's assume we want to execute the following shell command from an initialization task:
+
+.. code-block:: sh
+
+    `seqtk/1.0/seqtk sample -s100 test.fastq.gz 50000 > subsample_of_test.fastq.gz`
+
+This is what we would write in Python:
+
+.. code-block:: python
+
+   from genestack.cla import get_tool, RUN
+
+   seqtk = get_tool('seqtk', 'seqtk')
+   seqtk['sample' '-s100', 'test.fastq.gz', 50000] & RUN(stdout='subsample_of_test.fastq.gz')
+
+
+- `get_tool` returns a command that contains the ``seqtk`` executable from the ``seqtk`` toolset.
+- ``seqtk['sample', 'sample' '-s100', 'test.fastq.gz', 50000]`` returns a command with arguments
+- ``& RUN(stdout='subsample_of_test.fastq.gz')`` runs the command and redirects its output to a file.
+
+
+You can get the directory of a third-party tool using :py:meth:`~genestack.cla.get_tool_path`
+
+
+.. warning:: It is not possible to access two different versions of the same tool in one script.
+
+
+.. warning:: You can still use the ``subprocess`` module to execute shell commands.
+   To do this, you can get the path to the executable with :py:meth:`~genestack.cla.get_tool_path`.
+   Be careful while passing file names to ``subprocess`` calls with ``shell=True``,
+   files will be stored with their original names and "ambiguous" characters like ``&`` and ``>``
+   will need to be properly escaped.
+

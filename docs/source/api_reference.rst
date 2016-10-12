@@ -176,17 +176,12 @@ Exceptions
 Command Line Applications
 *************************
 
-.. autoclass:: genestack.CLA
-        :members:
-        :show-inheritance:
-
-.. autoclass:: genestack.Toolset
-        :members:
-        :show-inheritance:
-
-.. autoclass:: genestack.Tool
-        :members:
-        :show-inheritance:
+.. autofunction:: genestack.cla.get_tool
+.. autofunction:: genestack.cla.get_tool_path
+.. autofunction:: genestack.cla.get_argument_string
+.. autofunction:: genestack.cla.get_argument_string_list
+.. autodata:: genestack.cla.RUN
+.. autodata:: genestack.cla.OUTPUT
 
 
 Metainfo

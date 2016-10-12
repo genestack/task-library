@@ -91,35 +91,34 @@ The following script shows how to subsample an input unaligned reads file (using
 
     import os
 
-    from genestack import CLA, GenestackException
+    from genestack import GenestackException
     from genestack.bio import UnalignedReads
+    from genestack.cla import get_argument_string, RUN, get_tool
     from genestack.compression import UNCOMPRESSED, GZIP
 
-    raw_reads = UnalignedReads()
-    cla = CLA(raw_reads)
-    seqtk = cla.get_tool('seqtk', 'seqtk')
-    arguments = cla.argument_string()
+    if __name__ == '__main__':
+        raw_reads = UnalignedReads()
+        seqtk = get_tool('seqtk', 'seqtk')
+        head_arguments, tail_arguments = get_argument_string().split('<in.fq>')
 
-    source_file = raw_reads.resolve_reference(raw_reads.SOURCE_KEY, filetype=UnalignedReads)
+        source_file = raw_reads.resolve_reference(raw_reads.SOURCE_KEY, filetype=UnalignedReads)
 
-    reads, file_format = source_file.get_reads(formats=UnalignedReads.Format.PHRED33,
-                                               spaces=[UnalignedReads.Space.BASESPACE, UnalignedReads.Space.COLORSPACE],
-                                               compressions=[UNCOMPRESSED, GZIP],
-                                               working_dir='source')
+        reads, file_format = source_file.get_reads(formats=UnalignedReads.Format.PHRED33,
+                                                   spaces=[UnalignedReads.Space.BASESPACE, UnalignedReads.Space.COLORSPACE],
+                                                   compressions=[UNCOMPRESSED, GZIP],
+                                                   working_dir='source')
 
-    result_reads = []
-    for i, read in enumerate(reads, start=1):
-        read_name = 'sub%s.fq' % i
-        param_string = 'sample %s > %s' % (arguments.replace("<in.fq>", read), read_name)
-        seqtk.run([param_string])
-        if not os.path.exists(read_name):
-            raise GenestackException('File was not created')
-        result_reads.append(read_name)
-    raw_reads.put_reads(result_reads, file_format)
+        result_reads = []
+        for i, read in enumerate(reads, start=1):
+            read_name = 'sub%s.fq' % i
+            seqtk['sample', head_arguments.split(), read, tail_arguments.split()] & RUN(stdout=read_name)
+            if not os.path.exists(read_name):
+                raise GenestackException('File was not created')
+            result_reads.append(read_name)
+        raw_reads.put_reads(result_reads, file_format)
 
-As before, we get the current file by calling the ``UnalignedReads`` constructor without arguments.
-Then, we instantiate a ``CLA`` object which allows us to do two things:
+Then, ``genestack.cla`` module allows us to do two things:
 
-    - retrieve an application object for ``seqtk``
+    - retrieve a tool for ``seqtk``
     - get the file's command-line strings from its metainfo
 
