@@ -5,6 +5,7 @@ import shutil
 import json
 import subprocess
 
+from genestack import GenestackException
 from genestack import StorageUnit, Indexer
 from genestack.bio.reference_genome.dumper import FastaDumper
 from genestack.metainfo import StringValue
@@ -216,6 +217,12 @@ class ReferenceGenomeIndexer:
         for file_name in source_fasta_file_list:
             offset = 0
             with opener(file_name) as sequenceFile:
+                first = sequenceFile.read(1)
+                if first != '>':
+                    raise GenestackException('File "%s" is not a sequence file' % file_name)
+                else:
+                    sequenceFile.seek(0)
+
                 for line in sequenceFile:
                     if line.startswith('>'):
                         header = line[1:].split()
