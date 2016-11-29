@@ -121,6 +121,20 @@ def get_command(toolset, tool, uses=None):
     return get_tool(toolset, tool, uses=uses)
 
 
+def get_version(toolset):
+    """
+    Return toolset version.
+
+    :param toolset: toolset name
+    :type toolset: str
+    :return: toolset version as a string
+    :rtype: str
+    """
+    _init_toolsets()
+    toolset = _toolsets.get(toolset)
+    return toolset.get_version()
+
+
 def get_tool(toolset, tool, uses=None):
     """
     Return command with path and required environment.
@@ -135,7 +149,6 @@ def get_tool(toolset, tool, uses=None):
     :return: command to run tool
     :rtype: plumbum.commands.base.BoundEnvCommand | plumbum.machines.LocalCommand
     """
-
     tool = _get_tool(toolset, tool)
     cmd = tool.get_tool_command()
 

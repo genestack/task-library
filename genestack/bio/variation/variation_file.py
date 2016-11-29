@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import pipes
 import subprocess
-import time
 
-from genestack import ReportFile, GenestackException, StorageUnit, environment, utils
-from genestack.cla import CLA
+from genestack import ReportFile, GenestackException, StorageUnit, utils
+from genestack.cla import get_tool, RUN, OUTPUT
 from genestack.compression import decompress_file, gzip_file
 from genestack.metainfo import Metainfo
 
@@ -24,6 +22,7 @@ class Variation(ReportFile):
 
     DATA_LOCATION = Metainfo.DATA_LOCATION
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
     INDEX_LOCATION = 'genestack.location:index'
     TABIX_LOCATION = 'genestack.location:tabix'
@@ -45,13 +44,12 @@ class Variation(ReportFile):
         :type path: str
         :rtype: None
         """
+        compressed_data_file_path = self.__create_compressed_data_file(path)
+        tabix = self.__create_tabix(compressed_data_file_path)
+        num_of_variants = self.__get_number_of_variants(compressed_data_file_path)
+        index = self.__create_index(compressed_data_file_path, num_of_variants)
 
-        compressed_data_file = self.__create_compressed_data_file(path)
-        tabix = self.__create_tabix(compressed_data_file)
-        num_of_variants = self.__get_number_of_variants(compressed_data_file)
-        index = self.__create_index(compressed_data_file, num_of_variants)
-
-        self.put_data_file(compressed_data_file)
+        self.put_data_file(compressed_data_file_path)
         self.put_tabix_file(tabix)
         self.put_index(index)
 
@@ -69,17 +67,22 @@ class Variation(ReportFile):
 
     def __create_compressed_data_file(self, data_file_path):
         """
-        Creates an archive that contains the given variation file using BGZIP compression.
+        Creates an archive that contains the given variation file using BGZIP compression. Automatically converts
+        BCF to VCF (because tabix doesn't support it).
 
         :param data_file_path: path to the variation file
         :type data_file_path: str
         :return: path to the compressed archive
         :rtype: str
         """
-
-        compressed_file = data_file_path + '.bgz'
-        bgzip = CLA(self).get_tool('bcftools', 'bgzip')
-        bgzip.run(['-c', pipes.quote(data_file_path), '>', pipes.quote(compressed_file)])
+        if data_file_path.endswith('.bcf'):
+            compressed_file = data_file_path[:-4] + '.vcf.bgz'
+            bcftools = get_tool('bcftools', 'bcftools')
+            bcftools['convert', '-Oz', data_file_path] & RUN(stdout=compressed_file)
+        else:
+            compressed_file = data_file_path + '.bgz'
+            bgzip = get_tool('bcftools', 'bgzip')
+            bgzip['-c', data_file_path] & RUN(stdout=compressed_file)
         return compressed_file
 
     def __create_tabix(self, data_file_path):
@@ -92,13 +95,12 @@ class Variation(ReportFile):
         :return: path to the built index
         :rtype: str
         """
-
-        CLA(self).get_tool('bcftools', 'bcftools').run(['index', '-t', pipes.quote(data_file_path)])
+        get_tool('bcftools', 'bcftools')['index', '-t', data_file_path] & RUN
         return data_file_path + '.tbi'
 
     def __get_number_of_variants(self, data_file_path):
-        bcftools = CLA(self).get_tool('bcftools', 'bcftools')
-        return bcftools.output(['index', '-n', pipes.quote(data_file_path)]).strip()
+        bcftools = get_tool('bcftools', 'bcftools')
+        return (bcftools['index', '-n', data_file_path] & OUTPUT).strip()
 
     @staticmethod
     def __create_index(data_file_path, num_of_variants):
@@ -111,7 +113,6 @@ class Variation(ReportFile):
         :return: path to the index archive
         :rtype: str
         """
-
         indexer = utils.get_java_tool('genestack-vcf-indexer')
         index_folder = os.path.join(os.path.dirname(data_file_path), data_file_path + '.index')
 

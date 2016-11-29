@@ -35,7 +35,6 @@ class ContainerFileQuery(object):
         :param ascending: should sorting be in ascending order?
         :type ascending: bool
         """
-
         validate_type(filters, list, accept_none=True)
         validate_type(order, basestring)
         validate_type(limit, int)
@@ -163,7 +162,6 @@ class Folder(File):
         :param return_type: expected class for the created file (must be a child class of `File`)
         :return: new file object
         """
-
         validate_type(file_type, basestring)
         validate_type(metainfo, Metainfo)
         validate_type(return_type, type)
@@ -201,7 +199,6 @@ class Folder(File):
         :type container_file_query: ContainerFileQuery
         :return: list of children
         """
-
         validate_type(container_file_query, ContainerFileQuery)
         response = self.invoke('listChildren', ['com.genestack.api.files.ContainerFileQuery'],
                                [container_file_query.as_java_object()])

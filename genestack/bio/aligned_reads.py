@@ -4,9 +4,10 @@ import os
 from tempfile import mkdtemp
 
 from genestack import File, StorageUnit, GenestackException
-from genestack.cla import CLA
+from genestack.cla import CLA, get_tool, get_version, RUN
 from genestack.metainfo import Metainfo
 from genestack.utils import get_cpu_count
+from plumbum import local
 
 
 class AlignedReads(File):
@@ -39,6 +40,8 @@ class AlignedReads(File):
     FEATURES_FILE_LOCATION = 'genestack.location:features-annotation'
 
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
+
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def get_bam_file(self, working_dir=None):
@@ -52,6 +55,17 @@ class AlignedReads(File):
     def get_index_file(self, working_dir=None):
         units = self.GET(self.BAMINDEX_FILE_LOCATION, working_dir=working_dir)
         return units[0].get_first_file()
+
+    def get_features_annotations(self, working_dir=None):
+        """
+        GET files by urls stored in metainfo under FEATURES_FILE_LOCATION key
+        :param working_dir: same as in GET
+        :type working_dir: str
+        :return: list of paths to downloaded files
+        :rtype: list[str]
+        """
+        units = self.GET(self.FEATURES_FILE_LOCATION, working_dir=working_dir)
+        return [unit[0].get_first_file() for unit in units]
 
     def put_unmapped_bam(self, bam_path, sort=True, remove_program_options=True):
         """
@@ -129,45 +143,47 @@ class AlignedReads(File):
         tmp_folder = mkdtemp(prefix="without_options_", dir=os.getcwd())
         temp_file = os.path.join(tmp_folder, 'without_options.bam')
         # os.rename(bam_path, temp_file)
-        samtools = CLA(self).get_tool('samtools', 'samtools')
+        samtools = get_tool('samtools', 'samtools')
 
         # newer samtools, by default, add 'PG' header info when you call 're-header' command
         # the '--no-PG' option is not available in older samtools
-        args = ["view -H", bam_path, "| grep -v '^@PG' |"]
-        if samtools.version.startswith('1.3'):
-            args.append("samtools reheader --no-PG -")
-        else:
-            args.append("samtools reheader -")
-        args.extend([bam_path, ">", temp_file])
 
-        samtools.run(args)
+        command = samtools['view', '-H', bam_path] | local['grep']['-v', '^@PG']
+        if get_version('samtools').startswith('1.3'):
+            command = command | samtools['reheader', '--no-PG', '-', bam_path]
+        else:
+            command = command | samtools['reheader', '-', bam_path]
+        command & RUN(stdout=temp_file)
+
         if remove:
             os.remove(bam_path)
         return temp_file
 
     def __sort(self, bam_path, by_name, remove):
-        samtools = CLA(self).get_tool('samtools', 'samtools')
+        samtools = get_tool('samtools', 'samtools')
+        version = get_version('samtools')
         # ignore sort headers for samtools 0.1.18
-        ignore_sort_headers = samtools.version == '0.1.18'
+        ignore_sort_headers = version == '0.1.18'
         # samtools version 0.1.18 and 0.1.19 does not support sorting with threads
-        use_threads = not samtools.version.startswith('0.1.')
+        use_threads = not version.startswith('0.1.')
         if not ignore_sort_headers:
             sort_order = self.__get_sort_order(bam_path)
             if by_name and sort_order == 'name' or not by_name and sort_order == 'coordinate':
                 return bam_path
         tmp_folder = mkdtemp(prefix="sorted_bam", dir=os.getcwd())
-        sorted_bam_prefix = os.path.join(tmp_folder, 'sorted_by_name')
+        sorted_bam_prefix = os.path.join(tmp_folder,
+                                         'sorted_by_name' if by_name else 'sorted_by_coord')
         args = ['sort']
 
         if use_threads:
             args.extend(['-@', str(get_cpu_count())])
         if by_name:
             args.append('-n')
-        if samtools.version == '1.3.1':
+        if version == '1.3.1':
             args.extend([bam_path, '-o', sorted_bam_prefix + '.bam'])
         else:
             args.extend([bam_path, sorted_bam_prefix])
-        samtools.run(args)
+        samtools[args] & RUN
         if remove:
             os.remove(bam_path)
         return sorted_bam_prefix + '.bam'
@@ -179,8 +195,7 @@ class AlignedReads(File):
         return self.__sort(bam_path, False, remove)
 
     def make_index(self, bam_path):
-        samtools_tool = CLA(self).get_tool('samtools', 'samtools')
-        samtools_tool.run(['index', bam_path])
+        get_tool('samtools', 'samtools')['index', bam_path] & RUN
         bai_path = bam_path + '.bai'
         if not os.path.exists(bai_path):
             raise GenestackException('Index was not created for %s' % bam_path)

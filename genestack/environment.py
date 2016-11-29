@@ -8,11 +8,12 @@ import os
 
 PROXY_URL = 'http://{}:8888'.format(os.environ.get("TASK_HOST_IP", "localhost"))
 
-SYSTEM_DIRECTORY = '/var/genestack/Servers/filesystem'
-PROGRAMS_DIRECTORY = SYSTEM_DIRECTORY + '/programs'
+SYSTEM_DIRECTORY = '/var/lib/genestack'
+FILESYSTEM_DIRECTORY = SYSTEM_DIRECTORY + '/filesystem'
 STORAGE_DIRECTORY = SYSTEM_DIRECTORY + '/storage'
-DATA_READ_DIRECTORY = SYSTEM_DIRECTORY + '/data'
-DATA_WRITE_DIRECTORY = SYSTEM_DIRECTORY + '/write_data'
+PROGRAMS_DIRECTORY = FILESYSTEM_DIRECTORY + '/programs'
+DATA_READ_DIRECTORY = FILESYSTEM_DIRECTORY + '/data'
+DATA_WRITE_DIRECTORY = FILESYSTEM_DIRECTORY + '/write_data'
 
 BACKEND_URL = 'http://localhost:8080/backend/endpoint'
 

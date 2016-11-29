@@ -30,7 +30,6 @@ class StorageUnit(object):
         - files: list of files. Expected that it is valid paths. Files cannot be empty.
         - format: dictionary. This format describes whole group of files.
     """
-
     def __init__(self, file_or_list, file_format=None):
         """
         Creates storage unit. Accepts single path to file or list of paths.

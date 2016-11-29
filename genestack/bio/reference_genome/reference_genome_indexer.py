@@ -4,12 +4,13 @@ import os
 import shutil
 import json
 import subprocess
+import sys
 
 from genestack import GenestackException
 from genestack import StorageUnit, Indexer
 from genestack.bio.reference_genome.dumper import FastaDumper
 from genestack.metainfo import StringValue
-from genestack.utils import opener, DumpData, normalize_contig_name
+from genestack.utils import DumpData, normalize_contig_name, opener, truncate_sequence_str
 
 
 def get_qualifier(feature, attribute_key):
@@ -122,9 +123,13 @@ class ReferenceGenomeIndexer:
         # and would continue until the entire feature region is read.
         # A nested coding feature: gene -> transcript -> CDS/exon/intron
         current_contig = None
+
+        annotation_contigs = set()  # all contigs from annotation
+
         with Indexer(self.genome) as indexer:
             for record in BCBio.GFF.parse(source_annotations_file, target_lines=2000):
                 contig = record.id
+                annotation_contigs.add(contig)
                 if contig not in self.allowed_contigs:
                     continue
                 # contig can not be None here because self.allowed_contigs never contains None
@@ -161,6 +166,17 @@ class ReferenceGenomeIndexer:
                               subfeatures)
             if current_contig:
                 indexer.index_records(self.create_index_records(genes))
+            if not annotation_contigs.intersection(self.allowed_contigs):
+                msg = ('Error: '
+                       'contig names from the genome sequence and annotation '
+                       'totally differ (have no common items)\n'
+                       'Contigs present in sequence: %s\n'
+                       'Contigs present in annotation: %s\n' % (
+                           truncate_sequence_str(self.allowed_contigs),
+                           truncate_sequence_str(annotation_contigs))
+                       )
+                sys.stderr.write(msg)
+                exit(1)
 
     @staticmethod
     def create_index_records(genes):

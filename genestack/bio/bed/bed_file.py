@@ -16,6 +16,7 @@ class BED(File):
     DATA_LOCATION = Metainfo.DATA_LOCATION
 
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def put_with_index(self, path):

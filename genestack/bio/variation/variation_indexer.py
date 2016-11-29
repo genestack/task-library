@@ -28,7 +28,7 @@ class RecordConverter(object):
         'START': 'start_l',
         'REF': 'ref_s_ci',
         'QUAL': 'qual_f',
-        'ID': 'id_s_ci',
+        'ID': 'id_ss_ci',
         'FILTER': 'filter_ss_ci',
         'ALT': 'alt_ss_ci',
         'ALT_COUNT': 'alt_len_i_ns',
@@ -124,8 +124,8 @@ class RecordConverter(object):
             'qual_f': quality
         }
 
-        if record_id != '.':
-            data['id_s_ci'] = record_id
+        if record_id is not None and record_id != '.':
+            data['id_ss_ci'] = record_id.split(',')
         if filter_field != '.':
             data['filter_ss_ci'] = filter_field
 
@@ -268,7 +268,7 @@ class VariationIndexer(object):
         self.target_file = target_file
         if reference_genome is None:
             reference_genome = target_file.resolve_reference(
-                target_file.REFERENCE_GENOME_KEY, ReferenceGenome
+                target_file.REFERENCE_GENOME, ReferenceGenome
             )
         assert reference_genome is not None, "No reference genome found"
         self.reference_genome = reference_genome
@@ -323,7 +323,6 @@ class VariationIndexer(object):
         :param record_converter: record converter
         :return: indexer
         """
-
         process_features = self.process_features
         set_max_line = self.set_max_line
         set_initialization_version = self.__set_initialization_version

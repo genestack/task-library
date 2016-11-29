@@ -12,7 +12,7 @@ class MappedReadsCounts(File):
     Required keys:
         - :py:attr:`~genestack.bio.MappedReadsCounts.DATA_LOCATION` - key to store the physical file with mapped reads count.
 
-    To put data to this key you can use :py:meth:`~genestack.bio.MappedReadsCountsput_counts`.
+    To put data to this key you can use :py:meth:`~genestack.bio.MappedReadsCounts.put_counts`.
     """
     INTERFACE_NAME = 'com.genestack.bio.files.IHTSeqCounts'
 

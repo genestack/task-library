@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 from genestack import File, StorageUnit, GenestackException
 from genestack.compression import get_compression, AVAILABLE_COMPRESSIONS, UNCOMPRESSED, gzip_file
 from genestack.metainfo import BooleanValue, Metainfo
-from genestack.utils import is_empty_file, to_list, FormatPattern
+from genestack.utils import is_empty_file, to_list, FormatPattern, log_warning
 
 
 class UnalignedReads(File):
@@ -191,7 +191,7 @@ class UnalignedReads(File):
         if isinstance(values, basestring):
             values = [values]
         if not main_set.issuperset(values):
-            print 'Values are not valid: %s is not subset of %s' % (values, main_set)
+            log_warning('Values are not valid: %s is not subset of %s' % (values, main_set))
         return values
 
     def get_reads(self, format_pattern=None, compressions='*', formats='*', spaces='*', types='*',  working_dir=None):
@@ -214,7 +214,6 @@ class UnalignedReads(File):
         :param types: list of possible values for type, or '*' for all
         :return: tuple: list of paths, file format
         """
-
         if format_pattern is not None:
             if any(x != '*' for x in (compressions, formats, types, spaces)):
                 raise GenestackException(

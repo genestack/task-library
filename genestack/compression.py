@@ -32,7 +32,6 @@ def get_file_compression(file_name):
     :return: return compression constant
     :rtype: str
     """
-
     if file_name.endswith(('.gz', '.bgz')):
         # .bgz is our extension to gzip files created by TABIX,
         # This is valid gzip but we use a different extension to avoid clashes on backend.

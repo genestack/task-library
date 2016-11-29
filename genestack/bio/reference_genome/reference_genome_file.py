@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+import os
 
 from genestack.bio.genome_query import GenomeQuery
 from genestack import File, GenestackException
 from genestack.compression import decompress_file
 from genestack.metainfo import Metainfo
+from genestack.utils import log_info
 
 
 class ReferenceGenome(File):
@@ -21,6 +23,7 @@ class ReferenceGenome(File):
     ANNOTATIONS_LOCATION = 'genestack.location:annotations'
 
     REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def get_sequence_files(self, working_dir=None, decompressed=False):
@@ -36,7 +39,8 @@ class ReferenceGenome(File):
         units = self.GET(self.SEQUENCE_LOCATION, working_dir=working_dir)
         all_files = [p for x in units for p in x.files]
         if decompressed:
-            return [decompress_file(f, working_dir) for f in all_files]
+            all_files = [decompress_file(f, working_dir) for f in all_files]
+            log_info('Files are decompressed: %s\n' % ', '.join('"%s"' % x for x in all_files))
         return all_files
 
     def get_annotation_file(self, working_dir=None, decompressed=False):
@@ -52,7 +56,8 @@ class ReferenceGenome(File):
         units = self.GET(self.ANNOTATIONS_LOCATION, working_dir=working_dir)
         annotation_file = units[0].get_first_file()
         if decompressed:
-            return decompress_file(annotation_file, working_dir)
+            annotation_file = decompress_file(annotation_file, working_dir)
+            log_info('File is decompressed: "%s"\n' % os.path.relpath(annotation_file))
         return annotation_file
 
     def get_contigs(self):
@@ -77,7 +82,6 @@ class ReferenceGenome(File):
         :return:  GenomeSearchResponse as dictionary
         :rtype: dict[str, object]
         """
-
         if not isinstance(query, GenomeQuery):
             raise GenestackException(
                 'Query is not of type GenomeQuery: %s' % type(query)

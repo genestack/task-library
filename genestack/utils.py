@@ -98,10 +98,8 @@ def opener(filename, mode='r'):
     :param mode: is either 'r' or 'w' ('r' by default)
     :type mode: str
     """
-
     # avoid circular imports
     from genestack.compression import get_file_compression, GZIP, BZIP2, UNCOMPRESSED
-
 
     if mode not in ['r', 'w']:
         raise GenestackException('Invalid mode: %s' % repr(mode))
@@ -516,7 +514,6 @@ def get_java_tool(jar_name):
     :return: path to the tool
     :rtype: str
     """
-
     return os.path.join(environment.TASK_LIBRARY_ROOT, 'tools', '%s.jar' % jar_name)
 
 
@@ -529,7 +526,6 @@ def run_java_tool(tool, *args):
     :param args: tool arguments
     :type args: list[str]
     """
-
     tool_name = os.path.basename(os.path.normpath(tool))
     start_msg = 'Start %s' % tool_name
     log_info(start_msg)
@@ -544,3 +540,50 @@ def run_java_tool(tool, *args):
     exit_msg = 'Finish %s in %s' % (tool_name, tdelta)
     log_info(exit_msg)
     log_warning(exit_msg)
+
+
+def truncate_sequence_str(sequence, limit=10):
+    """
+    Return string representation of the sequence,
+    if sequence have more elements than limit, truncate output and print total number.
+
+    >>> truncate_sequence_str(['a', 'b', 'c'], limit=1)
+    ['a', ... and 2 more]
+
+    :param sequence: sequence to print
+    :type sequence: list|tuple|set|frozenset|dict
+    :param limit: max number of items to print
+    :type limit: int
+
+    :return: None
+    """
+    delimiter = ', '
+
+    # convert types and select proper braces
+    # set -> sorted list
+    # dict -> list of items
+
+    if isinstance(sequence, list):
+        braces = '[]'
+    elif isinstance(sequence, (set, frozenset)):
+        sequence = sorted(sequence)
+        braces = '{}'
+    elif isinstance(sequence, dict):
+        sequence = sorted(sequence.items())
+        braces = '[]'
+    else:
+        braces = '()'
+
+    size = len(sequence)
+    if size > limit:
+        suffix = '%s... and %s more' % (delimiter, size - limit)
+    else:
+        suffix = ''
+
+    result = [
+        braces[0],
+        delimiter.join(repr(x) for x in sequence[:limit]),
+        suffix,
+        braces[1]
+    ]
+    return ''.join(result)
