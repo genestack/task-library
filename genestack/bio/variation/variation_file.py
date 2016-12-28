@@ -2,9 +2,13 @@
 import os
 import subprocess
 
-from genestack import ReportFile, GenestackException, StorageUnit, utils
+from genestack import utils
+from genestack.bio import bio_meta_keys
 from genestack.cla import get_tool, RUN, OUTPUT
 from genestack.compression import decompress_file, gzip_file
+from genestack.core_files.report_file import ReportFile
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import Metainfo
 
 
@@ -20,9 +24,10 @@ class Variation(ReportFile):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.IVariationFile'
 
-    DATA_LOCATION = Metainfo.DATA_LOCATION
-    REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
+    DATA_LOCATION = 'genestack.location:data'
+    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
+    # @Deprecated, use REFERENCE_GENOME
+    REFERENCE_GENOME_KEY = REFERENCE_GENOME
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
     INDEX_LOCATION = 'genestack.location:index'
     TABIX_LOCATION = 'genestack.location:tabix'

@@ -2,9 +2,10 @@
 
 import os
 import shlex
-from genestack import StorageUnit, GenestackException
-from genestack.utils import opener, DumpData, normalize_contig_name
 
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
+from genestack.utils import opener, DumpData, normalize_contig_name
 
 # this constants should be same as in java code
 VARIABLE_STEP = 1

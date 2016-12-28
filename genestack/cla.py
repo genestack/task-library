@@ -7,10 +7,10 @@ import time
 from contextlib import contextmanager
 from subprocess import PIPE
 
-from genestack import GenestackException, File
+from genestack.genestack_exceptions import GenestackException
+from genestack.core_files.genestack_file import File
 from genestack.environment import PROGRAMS_DIRECTORY
 from genestack.utils import join_program_path, log_info, log_warning, format_tdelta, deprecated
-
 from plumbum import local
 from plumbum.commands import ExecutionModifier
 
@@ -109,9 +109,11 @@ def _get_tool(toolset, tool, verbose=True):
     :rtype: Tool
     """
     _init_toolsets()
-    toolset = _toolsets.get(toolset)
-    if toolset is None:
-        raise GenestackException("Tool version should be set in file metainfo")
+    if toolset not in _toolsets:
+        raise GenestackException(
+            'Cannot get version for toolset "%s", '
+            'this version should be set in metainfo by application' % toolset)
+    toolset = _toolsets[toolset]
     toolset.verbose = verbose
     return toolset.get_tool(tool)
 
@@ -132,7 +134,7 @@ def get_version(toolset):
     """
     _init_toolsets()
     toolset = _toolsets.get(toolset)
-    return toolset.get_version()
+    return toolset.version
 
 
 def get_tool(toolset, tool, uses=None):

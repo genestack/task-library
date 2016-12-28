@@ -4,8 +4,10 @@ import json
 import os
 from tempfile import mkdtemp
 
-from genestack import File, StorageUnit, GenestackException
 from genestack.compression import get_compression, AVAILABLE_COMPRESSIONS, UNCOMPRESSED, gzip_file
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import BooleanValue, Metainfo
 from genestack.utils import is_empty_file, to_list, FormatPattern, log_warning
 

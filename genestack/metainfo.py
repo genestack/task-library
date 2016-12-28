@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import JavaObject, java_object, JAVA_HASH_MAP, JAVA_LIST, decode_object
-from genestack import GenestackException
 from genestack.utils import deprecated, validate_type
 
 
@@ -17,6 +17,7 @@ class Metainfo(dict):
     LAST_UPDATE_DATE = "genestack:file.last-update"
     ACCESSION = "genestack:accession"
     DATA_URL = "genestack.url:data"
+    # DEPRECATED, this constant should be defined in the files
     DATA_LOCATION = "genestack.location:data"
     EXTERNAL_LINKS = "genestack:links"
     RAW_FILE_REFERENCE = "genestack.rawFile:data"

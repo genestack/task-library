@@ -5,20 +5,20 @@ import gzip
 import multiprocessing
 import os
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
 import time
-import struct
+from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime, timedelta, tzinfo
 from functools import wraps
 from subprocess import check_call
-from contextlib import contextmanager
-from datetime import datetime, timedelta, tzinfo
 
+from genestack.genestack_exceptions import GenestackException
 from genestack import environment
 from genestack.environment import PROGRAMS_DIRECTORY
-from genestack import GenestackException
 
 DEFAULT_CPU_COUNT = 8
 

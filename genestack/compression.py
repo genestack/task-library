@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
+from subprocess import Popen, PIPE, check_call
 from tempfile import mkstemp
 
-from subprocess import Popen, PIPE, check_call
-
-import os
-
-from genestack import GenestackException
+from genestack.genestack_exceptions import GenestackException
 from genestack.utils import makedirs_p
 
 

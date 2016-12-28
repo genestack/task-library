@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import time
 import itertools
+import time
 
 from genestack.utils import opener, log_info
 

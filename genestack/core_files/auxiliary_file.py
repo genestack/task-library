@@ -4,8 +4,7 @@
     java AuxiliaryFile object shadow
 """
 
-from genestack import File
-from genestack.metainfo import Metainfo
+from genestack.core_files.genestack_file import File
 
 
 # TODO: Do we need this class only as constant container?
@@ -14,6 +13,6 @@ from genestack.metainfo import Metainfo
 # AUXILIARY_FILE_KEY_DATA_LOCATION = 'genestack.location:data'  # same value used as constant in other places
 # AUXILIARY_FILE_KEY_CLASS_NAME = 'com.genestack.api.files.IAuxiliaryFile'  # never used
 class AuxiliaryFile(File):
-    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_LOCATION = 'genestack.location:data'
     MASTER_FILE = 'genestack:master'
     INTERFACE_NAME = 'com.genestack.api.files.IAuxiliaryFile'

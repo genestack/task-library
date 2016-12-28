@@ -2,4 +2,3 @@ pytest==2.9.0
 bitarray==0.8.1
 biopython==1.61
 rdflib==4.2.1
-plumbum==1.6.2

@@ -3,8 +3,11 @@
 import os
 from tempfile import mkdtemp
 
-from genestack import File, StorageUnit, GenestackException
+from genestack.bio import bio_meta_keys
 from genestack.cla import CLA, get_tool, get_version, RUN
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import Metainfo
 from genestack.utils import get_cpu_count
 from plumbum import local
@@ -39,8 +42,9 @@ class AlignedReads(File):
     UNMAPPED_READS_FILE_LOCATION = 'genestack.location:unmapped-reads'
     FEATURES_FILE_LOCATION = 'genestack.location:features-annotation'
 
-    REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
+    # @Deprecated, use REFERENCE_GENOME
+    REFERENCE_GENOME_KEY = REFERENCE_GENOME
 
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 

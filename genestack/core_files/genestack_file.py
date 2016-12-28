@@ -7,9 +7,9 @@ import hashlib
 import os
 import sys
 
+from genestack.genestack_exceptions import GenestackException
 from genestack.compression import ZIP, get_file_compression
 from genestack.frontend_object import GenestackObject, StorageUnit
-from genestack import GenestackException
 from genestack.metainfo import FileReference, StringValue
 from genestack.utils import to_list, opener, log_info, FormatPattern
 

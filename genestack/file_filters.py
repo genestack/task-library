@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File, GenestackException
-
+from genestack.genestack_exceptions import GenestackException
+from genestack.core_files.genestack_file import File
 from genestack.java import java_object
-from genestack.utils import validate_type
 from genestack.metainfo import MetainfoValue
+from genestack.utils import validate_type
 
 
 class BasicFileFilter(object):

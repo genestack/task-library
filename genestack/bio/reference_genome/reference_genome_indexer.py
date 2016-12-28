@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import json
 import os
 import shutil
-import json
 import subprocess
 import sys
 
-from genestack import GenestackException
-from genestack import StorageUnit, Indexer
+from genestack.genestack_exceptions import GenestackException
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_indexer import Indexer
 from genestack.bio.reference_genome.dumper import FastaDumper
 from genestack.metainfo import StringValue
 from genestack.utils import DumpData, normalize_contig_name, opener, truncate_sequence_str
@@ -176,7 +177,6 @@ class ReferenceGenomeIndexer:
                            truncate_sequence_str(annotation_contigs))
                        )
                 sys.stderr.write(msg)
-                exit(1)
 
     @staticmethod
     def create_index_records(genes):

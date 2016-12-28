@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File
-from genestack.metainfo import Metainfo
+from genestack.core_files.genestack_file import File
 
 
 class GenomeAnnotation(File):
@@ -16,5 +15,5 @@ class GenomeAnnotation(File):
 
     INTERFACE_NAME = 'com.genestack.bio.files.IGenomeAnnotations'
 
-    ANNOTATION_LOCATION = Metainfo.DATA_LOCATION
+    ANNOTATION_LOCATION = "genestack.location:data"
     ANNOTATION_GENES_INDEX_LOCATION = "genestack.location:gene_index"

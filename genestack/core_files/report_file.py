@@ -4,13 +4,13 @@
     java ReportFile object shadow
 """
 
+import mimetypes
 import os
 import urllib
-import mimetypes
-
 from subprocess import check_output
 
-from genestack import File, StorageUnit
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
 from genestack.metainfo import StringValue
 
 # Register bio mime types

@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File, GenestackException, StorageUnit
 from genestack.compression import gzip_file, decompress_file
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
+from genestack.java import java_object, JAVA_LIST
 from genestack.metainfo import Metainfo
 from genestack.query_range import QueryRange
-from genestack.java import java_object, JAVA_LIST
 
 
 class DictionaryFileQuery(object):
@@ -48,7 +50,7 @@ class DictionaryFileQuery(object):
 class DictionaryFile(File):
     INTERFACE_NAME = 'com.genestack.api.files.IDictionaryFile'
 
-    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_LOCATION = 'genestack.location:data'
     DATA_URL = Metainfo.DATA_URL
     # Deprecated use DATA_URL instead
     DATA_LINK = DATA_URL

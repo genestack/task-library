@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File
-from genestack.metainfo import Metainfo
+from genestack.core_files.genestack_file import File
 
 
 class CodonTable(File):
@@ -16,5 +15,5 @@ class CodonTable(File):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.ICodonTable'
 
-    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_LOCATION = 'genestack.location:data'
     TABLE_LOCATION = 'genestack.location:table'

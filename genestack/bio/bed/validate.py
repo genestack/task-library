@@ -14,8 +14,8 @@ Single validator structure:
 """
 
 import re
-from genestack import GenestackException
 
+from genestack.genestack_exceptions import GenestackException
 
 text_regexp = re.compile('[-\w]*')
 

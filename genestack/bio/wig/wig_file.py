@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File
-from genestack.metainfo import Metainfo
+from genestack.core_files.genestack_file import File
 
 
 class WIG(File):
@@ -12,6 +11,5 @@ class WIG(File):
         - :py:attr:`~genestack.bio.WIG.WIG_SOURCE_LOCATION` - key to store the physical wiggle file.
     """
     INTERFACE_NAME = 'com.genestack.bio.files.genomedata.IGenomeWiggleData'
-
-    WIG_SOURCE_LOCATION = Metainfo.DATA_LOCATION
+    WIG_SOURCE_LOCATION = 'genestack.location:data'
 

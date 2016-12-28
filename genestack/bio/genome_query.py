@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import java_object, JAVA_HASH_MAP, JAVA_ARRAY_LIST
-from genestack import GenestackException
 from genome_interval import GenomeInterval
 
 

@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import os
 
+from genestack.bio import bio_meta_keys
 from genestack.bio.genome_query import GenomeQuery
-from genestack import File, GenestackException
 from genestack.compression import decompress_file
+from genestack.core_files.genestack_file import File
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import Metainfo
 from genestack.utils import log_info
 
@@ -22,8 +24,11 @@ class ReferenceGenome(File):
     SEQUENCE_LOCATION = 'genestack.location:sequence'
     ANNOTATIONS_LOCATION = 'genestack.location:annotations'
 
-    REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
+    # @Deprecated, use bio_meta_keys.REFERENCE_GENOME
+    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
+    # @Deprecated, use bio_meta_keys.REFERENCE_GENOME
+    REFERENCE_GENOME_KEY = REFERENCE_GENOME
+
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def get_sequence_files(self, working_dir=None, decompressed=False):

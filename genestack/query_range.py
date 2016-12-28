@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from genestack import GenestackException, utils
+from genestack import utils
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import java_object
 
 
@@ -8,7 +9,7 @@ class QueryRange(object):
     """
     Class that represents the offset-limit pair used in queries as query bounds.
     """
-    CLASS_NAME = 'com.genestack.api.QueryRange'
+    CLASS_NAME = 'com.genestack.api.queries.QueryRange'
 
     def __init__(self, offset, limit, max_page_size):
         utils.validate_type(offset, (int, long))

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File, GenestackException
+from genestack.core_files.genestack_file import File
+from genestack.genestack_exceptions import GenestackException
 
 from genestack.file_filters import BasicFileFilter
 from genestack.java import java_object, JAVA_LIST
@@ -10,7 +11,9 @@ from genestack.utils import validate_type
 
 
 class ContainerFileQuery(object):
-    MAX_PAGE_SIZE = 100
+    MAX_LIMIT = 100
+    # @Deprecated, use MAX_LIMIT
+    MAX_PAGE_SIZE = MAX_LIMIT
     CLASS_NAME = 'com.genestack.api.files.ContainerFileQuery'
 
     class SortOrder(object):
@@ -20,7 +23,7 @@ class ContainerFileQuery(object):
         BY_LAST_UPDATE = 'BY_LAST_UPDATE'
         DEFAULT = 'DEFAULT'
 
-    def __init__(self, filters=None, order=SortOrder.DEFAULT, ascending=True, offset=0, limit=MAX_PAGE_SIZE):
+    def __init__(self, filters=None, order=SortOrder.DEFAULT, ascending=True, offset=0, limit=MAX_LIMIT):
         """
         Creates a new query to use in folder search
 
@@ -50,7 +53,7 @@ class ContainerFileQuery(object):
             raise GenestackException('Invalid sort order')
 
         self.filters = filters
-        self.range = QueryRange(offset, limit, self.MAX_PAGE_SIZE)
+        self.range = QueryRange(offset, limit, self.MAX_LIMIT)
         self.order = order
         self.ascending = ascending
 
@@ -213,7 +216,7 @@ class Folder(File):
         """
         validate_type(query, ContainerFileQuery)
         query.offset = 0
-        query.limit = ContainerFileQuery.MAX_PAGE_SIZE
+        query.limit = ContainerFileQuery.MAX_LIMIT
 
         while True:
             children_batch = self.list_children(query)

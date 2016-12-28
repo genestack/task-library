@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File
+from genestack.core_files.genestack_file import File
 
 
 class IndexFile(File):

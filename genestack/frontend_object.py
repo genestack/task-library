@@ -2,12 +2,13 @@
 
 # import logging
 import os
+
+from genestack.genestack_exceptions import GenestackException
+from genestack.bridge import _Bridge
 from genestack.java import JAVA_STRING, JAVA_LIST
-from genestack import GenestackException
+from genestack.java import java_object
 from genestack.metainfo import MetainfoValue, Metainfo
 from genestack.utils import log_warning, to_list, unbuffer_stdout, validate_type
-from genestack.bridge import _Bridge
-from genestack.java import java_object
 
 _bridge = _Bridge()
 

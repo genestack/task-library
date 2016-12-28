@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import GenestackException
+from genestack.genestack_exceptions import GenestackException
 
 JAVA_STRING = 'java.lang.String'
 JAVA_STRING_ARRAY = '[Ljava.lang.String;'

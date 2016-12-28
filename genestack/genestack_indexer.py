@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import string
-
 from multiprocessing.dummy import Pool
 
-from genestack import GenestackException
+from genestack.genestack_exceptions import GenestackException
 from genestack.utils import log_warning
 
 _SOLR_ALLOWED_CHARS = set(string.ascii_letters + string.digits + '_')

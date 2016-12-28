@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-
-from genestack import File
 from genestack.bio.bed.bed_indexer import BEDIndexer
+from genestack.bio import bio_meta_keys
+from genestack.core_files.genestack_file import File
 from genestack.metainfo import Metainfo
 
 
@@ -13,10 +13,11 @@ class BED(File):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.genomedata.IGenomeBEDData'
 
-    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_LOCATION = 'genestack.location:data'
 
-    REFERENCE_GENOME_KEY = 'genestack.bio:referenceGenome'
-    REFERENCE_GENOME = 'genestack.bio:referenceGenome'
+    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
+    # @Deprecated, use REFERENCE_GENOME
+    REFERENCE_GENOME_KEY = REFERENCE_GENOME
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
 
     def put_with_index(self, path):

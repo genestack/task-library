@@ -6,13 +6,11 @@ import subprocess
 from itertools import izip
 from tempfile import mkdtemp
 
-
-from genestack import StorageUnit, GenestackException
+import validate
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import StringValue
 from genestack.utils import opener, normalize_contig_name
-
-import validate
-
 
 validators = [validate.text_validator,
               validate.number_validator,

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from genestack import Folder
+from genestack.core_files.genestack_folder import Folder
 
 
 class Experiment(Folder):

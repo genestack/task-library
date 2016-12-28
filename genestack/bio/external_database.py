@@ -4,20 +4,15 @@
     Java ``ExternalDataBase`` object shadow
 """
 import os
-
 import pipes
 import subprocess
-import time
 
-from genestack import CLA
-from genestack import StorageUnit
-from genestack import environment
 from genestack import utils
 from genestack.cla import get_tool, RUN
-from genestack.compression import gzip_file
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import java_object, JAVA_HASH_MAP, JAVA_LIST
-from genestack import GenestackException, File
-from genestack.metainfo import Metainfo
 
 
 class ExternalDatabase(File):
@@ -27,7 +22,7 @@ class ExternalDatabase(File):
 
     INTERFACE_NAME = 'com.genestack.bio.files.IExternalDataBase'
 
-    DATA_LOCATION = Metainfo.DATA_LOCATION
+    DATA_LOCATION = 'genestack.location:data'
     INDEX_LOCATION = 'genestack.location:index'
     TABIX_LOCATION = 'genestack.location:tabix'
     SCHEMA_LOCATION = 'genestack.location:schema'

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from genestack import File, StorageUnit
+from genestack.core_files.genestack_file import File
+from genestack.frontend_object import StorageUnit
 from genestack.metainfo import Metainfo
 
 
@@ -11,6 +12,7 @@ class DifferentialExpression(File):
     INTERFACE_NAME = 'com.genestack.bio.files.differentialExpression.IDifferentialExpressionFile'
 
     SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    DATA_LOCATION = 'genestack.location:data'
 
     def put_result(self, path):
         """
@@ -20,7 +22,7 @@ class DifferentialExpression(File):
         :type path: str
         :return:
         """
-        self.PUT(Metainfo.DATA_LOCATION, StorageUnit(path))
+        self.PUT(self.DATA_LOCATION, StorageUnit(path))
 
     def get_result(self, working_dir=None):
         """
@@ -30,4 +32,4 @@ class DifferentialExpression(File):
         :type working_dir: str
         :return:
         """
-        return self.GET(Metainfo.DATA_LOCATION, working_dir=working_dir)
+        return self.GET(self.DATA_LOCATION, working_dir=working_dir)

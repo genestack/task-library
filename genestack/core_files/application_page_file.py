@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from genestack.core_files.genestack_file import File
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import java_object, JAVA_STRING, JAVA_HASH_MAP, JAVA_MAP
-from genestack import File, GenestackException
 from genestack.query_range import QueryRange
 from genestack.utils import deprecated, validate_type
 
@@ -152,7 +153,9 @@ class ApplicationPageFile(StringMapFile):
 
 
 class StringMapFileQuery(object):
-    MAX_PAGE_SIZE = 5000
+    MAX_LIMIT = 5000
+    # @Deprecated, use MAX_LIMIT
+    MAX_PAGE_SIZE = MAX_LIMIT
     CLASS_NAME = 'com.genestack.api.files.queries.StringMapFileQuery'
 
     __SORT_ORDER_CLASS = 'com.genestack.api.files.queries.StringMapFileQuery$SortOrder'
@@ -205,7 +208,7 @@ class StringMapFileQuery(object):
 
         self._token = None if string_map_file is None else string_map_file.get_modification_token()
         self.prefix = '' if prefix is None else prefix
-        self.range = QueryRange(offset, limit, self.MAX_PAGE_SIZE)
+        self.range = QueryRange(offset, limit, self.MAX_LIMIT)
         self.sort_order = sort_order
         self.sort_direction = sort_direction
 

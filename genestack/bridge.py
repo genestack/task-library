@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
 import os
-import requests
 import sys
 
-from genestack import GenestackException, environment
+import requests
+from genestack import environment
+from genestack.genestack_exceptions import GenestackException
 from genestack.java import decode_object
 
 
