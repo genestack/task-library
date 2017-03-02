@@ -2,10 +2,9 @@
 
 import os
 from subprocess import Popen, PIPE, check_call
-from tempfile import mkstemp
 
 from genestack.genestack_exceptions import GenestackException
-from genestack.utils import makedirs_p
+from genestack.utils import get_unique_name, makedirs_p
 
 
 UNCOMPRESSED = 'uncompressed'
@@ -14,22 +13,29 @@ BZIP2 = 'bzip2'
 ZIP = 'zip'
 
 AVAILABLE_COMPRESSIONS = (UNCOMPRESSED, BZIP2, GZIP, ZIP)
+ARCHIVE_EXTENSIONS = ['.gz', '.bgz', '.zip', '.bz2']
 
 
-def get_file_compression(file_name):
+def get_last_non_archive_extension(path):
     """
-    Return constant that represents compression of the file.
+    Return last extenstion which is not an archive extension.
 
-    :py:attr:`ZIP` zip compression
-    :py:attr:`BZIP2` bgzip2 compression
-    :py:attr:`GZIP` gzip
-    :py:attr:`UNCOMPRESSED` file is not compress by any of previous compression
-
-    :param file_name: filename
+    >>> get_last_non_archive_extension('a.bb.gz.bz2')
+    '.bb'
+    >>> get_last_non_archive_extension('a.gz.bz2')
+    ''
+    :param path: path to the file
     :type file_name: str
-    :return: return compression constant
+    :return: return last non-archive extension
     :rtype: str
     """
+    base, ext = os.path.splitext(path)
+    while ext in ARCHIVE_EXTENSIONS:
+        base, ext = os.path.splitext(base)
+    return ext
+
+
+def _get_file_compression_unchecked(file_name):
     if file_name.endswith(('.gz', '.bgz')):
         # .bgz is our extension to gzip files created by TABIX,
         # This is valid gzip but we use a different extension to avoid clashes on backend.
@@ -40,6 +46,26 @@ def get_file_compression(file_name):
         return ZIP
     else:
         return UNCOMPRESSED
+
+
+def get_file_compression(file_name):
+    """
+    Return constant that represents compression of a file. The file must be present on disc.
+
+    :py:attr:`ZIP` zip compression
+    :py:attr:`BZIP2` bgzip2 compression
+    :py:attr:`GZIP` gzip
+    :py:attr:`UNCOMPRESSED` file isn't compressed using any of the listed compressions
+
+    :param file_name: filename
+    :type file_name: str
+    :return: compression constant
+    :rtype: str
+    """
+    if not os.path.isfile(file_name):
+        raise GenestackException('Cannot detect compression of "%s", '
+                                 "file doesn't exist" % file_name)
+    return _get_file_compression_unchecked(file_name)
 
 
 def get_compression(files):
@@ -101,7 +127,7 @@ def compress_file(source, from_compression, to_compression, working_dir, remove_
     :type from_compression: str
     :param to_compression: compression to
     :type to_compression: str
-    :param working_dir: directory to copy files into, default is current directory
+    :param working_dir: directory to copy files into
     :type working_dir: str
     :param remove_source: flag if source file should be removed. Default ``True``
     :type remove_source: bool
@@ -114,13 +140,6 @@ def compress_file(source, from_compression, to_compression, working_dir, remove_
     current_source = source
     intermediate_files = []
     output = os.path.join(working_dir, os.path.basename(source))
-
-    def get_unique_name(output):
-        if os.path.exists(output):
-            folder, basename = os.path.split(output)
-            descriptor, output = mkstemp(suffix='_%s' % basename, prefix='', dir=folder, text=False)
-            os.close(descriptor)
-        return output
 
     if from_compression == BZIP2:
         args.append(['bzip2', '-d', '-c'])
@@ -192,10 +211,12 @@ def gzip_file(path, dest_folder=None, remove_source=True):
     return os.path.relpath(compress_file(path, compression, GZIP, dest_folder, remove_source=remove_source))
 
 
-def decompress_file(path, dest_folder=None):
+def decompress_file(path, dest_folder=None, remove_source=True):
     """
     If file is unpacked return path to it; otherwise unpack file to destination
-    folder and return path to decompressed file. If ``dest_folder`` is not specified, use current working directory.
+    folder and return path to decompressed file.
+    If ``dest_folder`` is not specified, use current working directory.
+    By default remove source file to save disc space.
 
 
     ``GZIP``, ``BZIP2`` and ``ZIP`` are currently supported.
@@ -204,6 +225,8 @@ def decompress_file(path, dest_folder=None):
     :type path: str
     :param dest_folder: place to put file
     :type dest_folder: str
+    :param remove_source: flag if source file should be removed. Default ``True``
+    :type remove_source: bool
     :return: path to unpacked file
     :rtype: str
     """
@@ -212,4 +235,5 @@ def decompress_file(path, dest_folder=None):
     compression = get_file_compression(path)
     if compression == UNCOMPRESSED:
         return path
-    return os.path.relpath(compress_file(path, compression, UNCOMPRESSED, dest_folder))
+    return os.path.relpath(
+        compress_file(path, compression, UNCOMPRESSED, dest_folder, remove_source=remove_source))

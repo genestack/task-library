@@ -44,8 +44,8 @@ class StorageUnit(object):
 
         base_names = {os.path.basename(x) for x in self.files}
         if len(base_names) != len(self.files):
-            raise GenestackException('Put files with same base names are prohibited')
-
+            raise GenestackException('Duplicate base names are not allowed: %s' %
+                                     ','.join(self.files))
         self.format = file_format
 
     def validate(self):

@@ -92,6 +92,7 @@ class UnalignedReads(File):
         Validates that format is correct.
 
         :param fmt: format dict
+        :type fmt: dict
         :return: None
         """
         format_specification = {
@@ -109,11 +110,11 @@ class UnalignedReads(File):
             fmt, json.dumps(format_specification, indent=4))
 
         if set(fmt) != set(format_specification):
-            raise GenestackException(error_template % 'Keys do not match.')
+            raise GenestackException(error_template % 'Keys do not match')
 
         for key, val in fmt.items():
             if val not in format_specification[key]:
-                msg = 'Invalid value "%s" for key "%s". Expect one of %s.' % (val, key, format_specification[key])
+                msg = 'Invalid value "%s" for key "%s". Expected one of: %s' % (val, key, format_specification[key])
                 raise GenestackException(error_template % msg)
 
     # def isBasespaceNotColorspace(self):
@@ -147,7 +148,7 @@ class UnalignedReads(File):
         elif fmt in (cls.Format.PHRED33, cls.Format.PHRED64, cls.Format.FASTA_QUAL):
             expected_count *= (2 if fmt == cls.Format.FASTA_QUAL else 1)
             if expected_count != len(files):
-                msg = 'Expecting %s files for format "%s" and type "%s", got %s'
+                msg = 'Expected %s files for format "%s" and type "%s", got %s'
                 raise GenestackException(msg % (expected_count, fmt, tp, len(files)))
         else:
             raise GenestackException('Unknown format: %s' % fmt)
@@ -219,7 +220,8 @@ class UnalignedReads(File):
         if format_pattern is not None:
             if any(x != '*' for x in (compressions, formats, types, spaces)):
                 raise GenestackException(
-                    'Arguments "compressions", "formats", "types", "spaces" cannot be combined with format_pattern')
+                    'Arguments "compressions", "formats", "types", "spaces" '
+                    'cannot be combined with "format_pattern"')
         else:
             format_pattern = self.compose_format_pattern(types=types, formats=formats,
                                                          spaces=spaces, compressions=compressions)

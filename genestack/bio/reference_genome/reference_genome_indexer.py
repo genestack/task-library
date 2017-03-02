@@ -9,6 +9,9 @@ import sys
 from genestack.genestack_exceptions import GenestackException
 from genestack.frontend_object import StorageUnit
 from genestack.genestack_indexer import Indexer
+
+from genestack.bio.annotation_utils import determine_annotation_file_format, GTF, GFF3
+
 from genestack.bio.reference_genome.dumper import FastaDumper
 from genestack.metainfo import StringValue
 from genestack.utils import DumpData, normalize_contig_name, opener, truncate_sequence_str
@@ -18,6 +21,61 @@ def get_qualifier(feature, attribute_key):
     return feature.qualifiers.get(attribute_key, [None])[0]
 
 INDEXING_VERSION = 'genestack.indexing:version'
+
+
+def _handle_gtf_feature(contig, feature, genes):
+    attribute_holder = feature.sub_features[0] if feature.sub_features else feature
+    # all sub features belong to the same transcription => to the same gene
+    features_list = feature.sub_features if feature.sub_features else [feature]
+
+    subfeatures = [SubFeature(int(subfeature.location.start),
+                              int(subfeature.location.end),
+                              subfeature.strand,
+                              subfeature.type) for subfeature in features_list]
+
+    gene_name = get_qualifier(attribute_holder, 'gene_name')
+    transcript_name = get_qualifier(attribute_holder, 'transcript_name')
+    gene_id = get_qualifier(attribute_holder, 'gene_id')
+    transcript_id = get_qualifier(attribute_holder, 'transcript_id')
+
+    genes.add(contig,
+              gene_name,
+              gene_id,
+              transcript_name,
+              transcript_id,
+              int(feature.location.start),
+              int(feature.location.end),
+              subfeatures)
+
+
+def _handle_gff3_feature(contig, feature, genes):
+    if 'gene' not in feature.type and 'pseudogenic' not in feature.type:
+        return
+    gene_id = get_qualifier(feature, 'gene_id') or get_qualifier(feature, 'ID')
+    gene_name = get_qualifier(feature, 'Name')
+    genes.add(contig,
+              gene_name,
+              gene_id,
+              None,
+              None,
+              int(feature.location.start),
+              int(feature.location.end),
+              None)
+    for sub_feature in feature.sub_features:
+        transcript_id = get_qualifier(sub_feature, 'transcript_id') or get_qualifier(sub_feature, 'ID')
+        transcript_name = get_qualifier(sub_feature, 'Name')
+        sub_sub_features = [SubFeature(int(subfeature.location.start),
+                                       int(subfeature.location.end),
+                                       subfeature.strand,
+                                       subfeature.type) for subfeature in sub_feature.sub_features]
+        genes.add(contig,
+                  gene_name,
+                  gene_id,
+                  transcript_name,
+                  transcript_id,
+                  int(sub_feature.location.start),
+                  int(sub_feature.location.end),
+                  sub_sub_features)
 
 
 class Gene(object):
@@ -90,6 +148,11 @@ class ReferenceGenomeIndexer:
     INDEX_FASTA_LOCATION = 'genestack.location:index_fasta'
     INDEX_FASTA_CACHE_LOCATION = 'genestack.location:index_fasta_cache'
 
+    TYPE_SUFFIXES = {
+        'gene': '/G',
+        'transcript': '/T',
+    }
+
     def __init__(self, genome, result_dir='result'):
         """
         :param genome:
@@ -117,8 +180,15 @@ class ReferenceGenomeIndexer:
     def index_features(self, source_annotations_file_path):
         # avoid crash then using pypy
         import BCBio.GFF
-
         source_annotations_file = open(source_annotations_file_path)
+        annotation_format = determine_annotation_file_format(source_annotations_file_path)
+
+        if annotation_format == GFF3:
+            handle_feature = _handle_gff3_feature
+        elif annotation_format == GTF:
+            handle_feature = _handle_gtf_feature
+        else:
+            raise GenestackException('Annotation format is not supported: %s' % annotation_format)
 
         # The parser will attempt to smartly break up the file at requested number of lines
         # and would continue until the entire feature region is read.
@@ -143,28 +213,7 @@ class ReferenceGenomeIndexer:
 
                 # collect all genes and transcripts from the portion of GTF. First item always gene
                 for feature in record.features:
-                    attribute_holder = feature.sub_features[0] if feature.sub_features else feature
-                    # all sub features belong to the same transcription => to the same gene
-                    features_list = feature.sub_features if feature.sub_features else [feature]
-
-                    subfeatures = [SubFeature(int(subfeature.location.start),
-                                              int(subfeature.location.end),
-                                              subfeature.strand,
-                                              subfeature.type) for subfeature in features_list]
-
-                    gene_name = get_qualifier(attribute_holder, 'gene_name')
-                    transcript_name = get_qualifier(attribute_holder, 'transcript_name')
-                    gene_id = get_qualifier(attribute_holder, 'gene_id')
-                    transcript_id = get_qualifier(attribute_holder, 'transcript_id')
-
-                    genes.add(contig,
-                              gene_name,
-                              gene_id,
-                              transcript_name,
-                              transcript_id,
-                              int(feature.location.start),
-                              int(feature.location.end),
-                              subfeatures)
+                    handle_feature(contig, feature, genes)
             if current_contig:
                 indexer.index_records(self.create_index_records(genes))
             if not annotation_contigs.intersection(self.allowed_contigs):
@@ -178,19 +227,23 @@ class ReferenceGenomeIndexer:
                        )
                 sys.stderr.write(msg)
 
+
     @staticmethod
     def create_index_records(genes):
         def make_index_record(record_id, name, contig, start, end, record_type, gene_id=None, subfeatures_list=None):
+            feature_id = str(record_id)
+            doc_id = feature_id + ReferenceGenomeIndexer.TYPE_SUFFIXES[record_type]
             data = {
-                '__id__': str(record_id),
+                '__id__': doc_id,
+                'id_s_ci': feature_id,
                 'name_s_ci': name,
-                'contig_s': contig,
+                'contig_s_ci': contig,
                 'location_iv': str(start) + " " + str(end),
                 'start_l': start,
                 'type_s': record_type
             }
             if gene_id is not None:
-                data['geneId_s_ci'] = gene_id
+                data['parentGeneId_s_ci'] = gene_id
             if subfeatures_list is not None:
                 data['subfeatures_ss'] = subfeatures_list
             return data
@@ -268,6 +321,10 @@ class ReferenceGenomeIndexer:
         self.genome.PUT(self.INDEX_FASTA_LOCATION, StorageUnit(self.result_fasta_contigs_index_path))
 
     def create_index(self, fasta_paths, annotation_path):
+        annotation_format = determine_annotation_file_format(annotation_path)
+        if annotation_format not in [GTF, GFF3]:
+            raise GenestackException('Unsupported annotation file format: %s' % annotation_format)
+
         self.genome.add_metainfo_value(INDEXING_VERSION, StringValue('2'))
         self.processing_fasta(fasta_paths)
         self.index_features(annotation_path)

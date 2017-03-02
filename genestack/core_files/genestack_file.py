@@ -188,8 +188,9 @@ class File(GenestackObject):
         :param working_dir: directory to copy files into, default is current directory
         :type working_dir: str
         :return: List of :py:class:`~genestack.StorageUnit`
-        :rtype: list
-        :raise GenestackException: If has not files corresponding to key.
+        :rtype: list[StorageUnit]
+        :raise GenestackException: No files by the key found,
+               or requested format could not have been retrieved
         """
         log_info('Getting file for key "%s"' % key)
         working_dir = working_dir or os.path.curdir

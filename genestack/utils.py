@@ -99,13 +99,14 @@ def opener(filename, mode='r'):
     :type mode: str
     """
     # avoid circular imports
-    from genestack.compression import get_file_compression, GZIP, BZIP2, UNCOMPRESSED
+    # noinspection PyProtectedMember
+    from genestack.compression import _get_file_compression_unchecked, GZIP, BZIP2, UNCOMPRESSED
 
     if mode not in ['r', 'w']:
         raise GenestackException('Invalid mode: %s' % repr(mode))
     mode = '%sb' % mode
 
-    compression = get_file_compression(filename)
+    compression = _get_file_compression_unchecked(filename)
 
     compression_map = {
         GZIP: gzip.open,
@@ -587,3 +588,19 @@ def truncate_sequence_str(sequence, limit=10):
         braces[1]
     ]
     return ''.join(result)
+
+
+def get_unique_name(output):
+    """
+    Returns path to the new unique file name if output already exists.
+
+    :param output: path
+    :type output: str
+    :return: path to the new unique file name if output is already exists
+    :rtype: str
+    """
+    if os.path.exists(output):
+        folder, basename = os.path.split(output)
+        descriptor, output = tempfile.mkstemp(suffix='_%s' % basename, prefix='', dir=folder)
+        os.close(descriptor)
+    return output
