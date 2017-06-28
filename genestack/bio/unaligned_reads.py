@@ -48,7 +48,9 @@ class UnalignedReads(File):
 
     READS_LOCATION = 'genestack.location:reads'
     HAS_PAIRED_READS = "genestack.bio:hasPairedReads"
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
 
     class Key(object):
         SPACE = 'space'

@@ -154,8 +154,6 @@ class ApplicationPageFile(StringMapFile):
 
 class StringMapFileQuery(object):
     MAX_LIMIT = 5000
-    # @Deprecated, use MAX_LIMIT
-    MAX_PAGE_SIZE = MAX_LIMIT
     CLASS_NAME = 'com.genestack.api.files.queries.StringMapFileQuery'
 
     __SORT_ORDER_CLASS = 'com.genestack.api.files.queries.StringMapFileQuery$SortOrder'
@@ -170,7 +168,7 @@ class StringMapFileQuery(object):
     DIRECTION_DESCENDING = 'DESCENDING'
 
     def __init__(self, string_map_file, prefix=None,
-                 offset=0, limit=MAX_PAGE_SIZE,
+                 offset=0, limit=MAX_LIMIT,
                  sort_order=ORDER_DEFAULT,
                  sort_direction=DIRECTION_DEFAULT
                  ):

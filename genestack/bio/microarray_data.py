@@ -5,18 +5,15 @@ from genestack.compression import decompress_file
 from genestack.core_files.genestack_file import File
 from genestack.utils import makedirs_p
 
-"""
-DEPRECATED. Use microarray_data module instead.
-"""
 
-class MicroarrayAssay(File):
+class MicroarrayData(File):
     """
-    This class represents a microarray assay.
+    This class represents a microarray data.
 
     Required keys:
         - :py:attr:`~genestack.bio.MicroarrayAssay.DATA_LOCATION` - key to store the physical assay file.
     """
-    INTERFACE_NAME = 'com.genestack.bio.files.IMicroarrayAssay'
+    INTERFACE_NAME = 'com.genestack.bio.files.IMicroarrayData'
 
     DATA_LOCATION = 'genestack.location:data'
 

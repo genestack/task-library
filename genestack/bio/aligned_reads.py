@@ -33,20 +33,24 @@ class AlignedReads(File):
        - :py:attr:`~genestack.bio.AlignedReads.FEATURES_FILE_LOCATION` - key to store physical BED files with features
          (this is to accommodate for the fact that some aligners, like tophat, can produce BED files along with aligned
          reads to annotate junctions, insertions and deletions).
+
+       - :py:attr:`~genestack.bio.AlignedReads.TRANSCRIPT_ALIGNED_BAM_FILE_LOCATION` - key to store the physical BAM
+         file containing transcriptome-aligned reads.
+
     """
     INTERFACE_NAME = 'com.genestack.bio.files.IAlignedReads'
 
     BAM_FILE_LOCATION = 'genestack.location:bamfile'
     BAMINDEX_FILE_LOCATION = 'genestack.location:baifile'
 
+    TRANSCRIPT_ALIGNED_BAM_FILE_LOCATION = 'genestack.location:transcript-aligned-bamfile'
+
     UNMAPPED_READS_FILE_LOCATION = 'genestack.location:unmapped-reads'
     FEATURES_FILE_LOCATION = 'genestack.location:features-annotation'
 
-    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
-    # @Deprecated, use REFERENCE_GENOME
-    REFERENCE_GENOME_KEY = REFERENCE_GENOME
-
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
 
     def get_bam_file(self, working_dir=None):
         units = self.GET(self.BAM_FILE_LOCATION, working_dir=working_dir)
@@ -58,6 +62,10 @@ class AlignedReads(File):
 
     def get_index_file(self, working_dir=None):
         units = self.GET(self.BAMINDEX_FILE_LOCATION, working_dir=working_dir)
+        return units[0].get_first_file()
+
+    def get_transcript_aligned_bam_file(self, working_dir=None):
+        units = self.GET(self.TRANSCRIPT_ALIGNED_BAM_FILE_LOCATION, working_dir=working_dir)
         return units[0].get_first_file()
 
     def get_features_annotations(self, working_dir=None):

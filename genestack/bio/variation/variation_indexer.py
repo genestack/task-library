@@ -4,6 +4,8 @@ import re
 import sys
 
 import vcf
+
+from genestack.bio import bio_meta_keys
 from genestack.genestack_indexer import Indexer
 from genestack.genestack_exceptions import GenestackException
 from genestack.bio.reference_genome.reference_genome_file import ReferenceGenome
@@ -268,7 +270,7 @@ class VariationIndexer(object):
         self.target_file = target_file
         if reference_genome is None:
             reference_genome = target_file.resolve_reference(
-                target_file.REFERENCE_GENOME, ReferenceGenome
+                bio_meta_keys.REFERENCE_GENOME, ReferenceGenome
             )
         assert reference_genome is not None, "No reference genome found"
         self.reference_genome = reference_genome

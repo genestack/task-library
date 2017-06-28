@@ -11,7 +11,9 @@ class DifferentialExpression(File):
     """
     INTERFACE_NAME = 'com.genestack.bio.files.differentialExpression.IDifferentialExpressionFile'
 
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
     DATA_LOCATION = 'genestack.location:data'
 
     def put_result(self, path):

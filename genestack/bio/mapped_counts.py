@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from genestack.compression import gzip_file
 from genestack.core_files.genestack_file import File
 from genestack.frontend_object import StorageUnit
-from genestack.compression import gzip_file
+from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import Metainfo, IntegerValue
 from genestack.utils import opener
 
@@ -19,9 +20,10 @@ class MappedReadsCounts(File):
     INTERFACE_NAME = 'com.genestack.bio.files.IHTSeqCounts'
 
     DATA_LOCATION = 'genestack.location:data'
-    LOCATION_DATA = DATA_LOCATION  # deprecated, use DATA_LOCATION instead
 
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
 
     HTSEQ_COUNT_NO_FEATURE = 'genestack.bio.htseqCount:no_feature'
     HTSEQ_COUNT_AMBIGUOUS = 'genestack.bio.htseqCount:ambiguous'
@@ -55,6 +57,11 @@ class MappedReadsCounts(File):
         with opener(path) as f:
             for line in f:
                 line = line.strip()
-                feature, value = line.split('\t')
+                try:
+                    feature, value = line.split('\t')
+                    # Check that value can be parsed as an integer
+                    value = int(value)
+                except ValueError:
+                    raise GenestackException('Bad line format: "%s"' % line)
                 if feature in self.SPECIAL_COUNTERS_MAP.keys():
                     self.add_metainfo_value(self.SPECIAL_COUNTERS_MAP[feature], IntegerValue(value))

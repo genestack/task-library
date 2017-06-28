@@ -15,10 +15,9 @@ class BED(File):
 
     DATA_LOCATION = 'genestack.location:data'
 
-    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
-    # @Deprecated, use REFERENCE_GENOME
-    REFERENCE_GENOME_KEY = REFERENCE_GENOME
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
 
     def put_with_index(self, path):
         """

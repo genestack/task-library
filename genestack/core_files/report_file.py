@@ -12,6 +12,7 @@ from subprocess import check_output
 from genestack.core_files.genestack_file import File
 from genestack.frontend_object import StorageUnit
 from genestack.metainfo import StringValue
+from genestack.utils import escape_quotation
 
 # Register bio mime types
 types_to_register = {
@@ -92,7 +93,7 @@ class ReportFile(File):
         properties = []
 
         def add_param(key, value):
-            properties.append('%s=%s' % (key, self.__escape_quotation(value)))
+            properties.append('%s=%s' % (key, escape_quotation(value)))
 
         if mime:
             properties.append(mime)
@@ -107,14 +108,6 @@ class ReportFile(File):
             add_param(self.NAME_PROPERTY, name)
 
         return ';'.join(properties)
-
-    @staticmethod
-    def __escape_quotation(value_string):
-        special_characters = ['(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=']
-        if any(char in value_string for char in special_characters):
-            escaped = value_string.replace('\\', '\\\\').replace('"', '\\"')
-            return '"' + escaped + '"'
-        return value_string
 
     @staticmethod
     def __extract_mime(path):

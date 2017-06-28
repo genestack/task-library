@@ -52,8 +52,6 @@ class DictionaryFile(File):
 
     DATA_LOCATION = 'genestack.location:data'
     DATA_URL = Metainfo.DATA_URL
-    # Deprecated use DATA_URL instead
-    DATA_LINK = DATA_URL
 
     # Key to store reference to parent dictionary
     PARENT_DICTIONARY = 'genestack.dictionary:parent'

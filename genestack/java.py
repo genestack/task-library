@@ -2,6 +2,7 @@
 
 from genestack.genestack_exceptions import GenestackException
 
+JAVA_CLASS = 'java.lang.Class'
 JAVA_STRING = 'java.lang.String'
 JAVA_STRING_ARRAY = '[Ljava.lang.String;'
 JAVA_STRING_ARRAY_OF_ARRAYS = '[[Ljava.lang.String;'
@@ -9,6 +10,7 @@ JAVA_OBJECT_ARRAY = '[Ljava.lang.Object;'
 JAVA_OBJECT_ARRAY_OF_ARRAYS = '[[Ljava.lang.Object;'
 JAVA_MAP = 'java.util.Map'
 JAVA_HASH_MAP = 'java.util.HashMap'
+JAVA_COLLECTION = 'java.util.Collection'
 JAVA_SET = 'java.util.Set'
 JAVA_LIST = 'java.util.List'
 JAVA_ARRAY_LIST = 'java.util.ArrayList'

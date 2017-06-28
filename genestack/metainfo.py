@@ -17,12 +17,8 @@ class Metainfo(dict):
     LAST_UPDATE_DATE = "genestack:file.last-update"
     ACCESSION = "genestack:accession"
     DATA_URL = "genestack.url:data"
-    # DEPRECATED, this constant should be defined in the files
-    DATA_LOCATION = "genestack.location:data"
     EXTERNAL_LINKS = "genestack:links"
     RAW_FILE_REFERENCE = "genestack.rawFile:data"
-    # DEPRECATED use RAW_FILE_REFERENCE instead
-    RAW_LOCATION = RAW_FILE_REFERENCE
     ORGANIZATION = "genestack:organization"
     CONTACT_PERSON = "genestack:contactPerson"
     STORAGE_DATA_SIZE = "genestack:storageDataSize"
@@ -30,9 +26,6 @@ class Metainfo(dict):
     DATABASE_SIZE = "genestack:databaseDataSize"
     PROGRESS_INFO = "genestack:progressInfo"
     DATA_TYPE = "genestack:dataType"
-
-    # Deprecated, applications should switch to SOURCE_DATA in java and python
-    SOURCE_DATA_KEY = "genestack.bio:sourceData"
 
     SOURCE_DATA = "genestack:sourceData"
 

@@ -7,7 +7,6 @@ from genestack.metainfo import Metainfo
 
 # TODO remove this class after removing it s usages in bio-applications
 class BioDataFile(File):
-    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
-    # @Deprecated, use REFERENCE_GENOME
-    REFERENCE_GENOME_KEY = REFERENCE_GENOME
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA

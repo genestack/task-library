@@ -232,16 +232,26 @@ def format_tdelta(tdelta):
     return tdelta_s
 
 
-def log_info(msg):
-    """
-    Log a message with current date and time to stdout.
-    """
-    _log_with_timestamp(msg, sys.stdout)
+def _join_messages(messages):
+    return ' '.join(str(msg) for msg in messages)
 
 
-def log_warning(msg):
-    """Log a message with current date and time to stderr."""
-    _log_with_timestamp(msg, sys.stderr)
+def log_info(*messages):
+    """
+    Join messages with space and log them with current date and time to stdout.
+
+    Non-string messages will be converted to string.
+    """
+    _log_with_timestamp(_join_messages(messages), sys.stdout)
+
+
+def log_warning(*messages):
+    """
+    Join messages with space and log them with current date and time to stderr.
+
+    Non-string messages will be converted to string.
+    """
+    _log_with_timestamp(_join_messages(messages), sys.stderr)
 
 
 class UTC(tzinfo):
@@ -604,3 +614,19 @@ def get_unique_name(output):
         descriptor, output = tempfile.mkstemp(suffix='_%s' % basename, prefix='', dir=folder)
         os.close(descriptor)
     return output
+
+
+def escape_quotation(value_string):
+    """
+    Returns a given string with escaped quotations.
+
+    :param value_string: string to be escaped
+    :type output: str
+    :return: string with escaped quotations
+    :rtype: str
+    """
+    special_characters = ['(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=']
+    if any(char in value_string for char in special_characters):
+        escaped = value_string.replace('\\', '\\\\').replace('"', '\\"')
+        return '"' + escaped + '"'
+    return value_string

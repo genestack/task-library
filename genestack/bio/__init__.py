@@ -8,11 +8,14 @@ from genestack.bio.codon_table import CodonTable
 from genestack.bio.differential_expression import DifferentialExpression
 from genestack.bio.experiment import Experiment
 from genestack.bio.external_database import ExternalDatabase
+from genestack.bio.feature_list import FeatureList
+from genestack.bio.feature_list import GeneExpressionSignature
 from genestack.bio.genome_annotation import GenomeAnnotation
 from genestack.bio.genome_interval import GenomeInterval
 from genestack.bio.genome_query import GenomeQuery
 from genestack.bio.mapped_counts import MappedReadsCounts
 from genestack.bio.microarray_assay import MicroarrayAssay
+from genestack.bio.microarray_data import MicroarrayData
 from genestack.bio.reference_genome.reference_genome_file import ReferenceGenome
 from genestack.bio.reference_genome.reference_genome_indexer import ReferenceGenomeIndexer
 from genestack.bio.unaligned_reads import UnalignedReads

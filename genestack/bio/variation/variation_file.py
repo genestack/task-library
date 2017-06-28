@@ -2,15 +2,17 @@
 import os
 import subprocess
 
+from genestack import compression
 from genestack import utils
 from genestack.bio import bio_meta_keys
-from genestack.cla import get_tool, RUN, OUTPUT
+from genestack.cla import get_tool, get_tool_path, RUN, OUTPUT
 from genestack.compression import decompress_file, gzip_file
 from genestack.core_files.report_file import ReportFile
 from genestack.frontend_object import StorageUnit
 from genestack.genestack_exceptions import GenestackException
 from genestack.metainfo import Metainfo
 
+import time
 
 class Variation(ReportFile):
     """
@@ -25,21 +27,28 @@ class Variation(ReportFile):
     INTERFACE_NAME = 'com.genestack.bio.files.IVariationFile'
 
     DATA_LOCATION = 'genestack.location:data'
-    REFERENCE_GENOME = bio_meta_keys.REFERENCE_GENOME
-    # @Deprecated, use REFERENCE_GENOME
-    REFERENCE_GENOME_KEY = REFERENCE_GENOME
-    SOURCE_KEY = Metainfo.SOURCE_DATA_KEY
+    # @Deprecated, use Metainfo.SOURCE_DATA
+    # Deprecated in 0.44.0, will be removed in 0.47.0
+    SOURCE_KEY = Metainfo.SOURCE_DATA
     INDEX_LOCATION = 'genestack.location:index'
     TABIX_LOCATION = 'genestack.location:tabix'
+    GENOTYPES_LOCATION = 'genestack.location:genotypes'
+
 
     def put_data_file(self, path):
         self.PUT(self.DATA_LOCATION, StorageUnit(gzip_file(path, remove_source=False)))
+
+    def put_filtered_file(self, path):
+        self.PUT(self.FILTERED_LOCATION, StorageUnit(path))
 
     def put_tabix_file(self, path):
         self.PUT(self.TABIX_LOCATION, StorageUnit(path))
 
     def put_index(self, path):
         self.PUT(self.INDEX_LOCATION, StorageUnit(path))
+
+    def put_genotypes(self, path):
+        self.PUT(self.GENOTYPES_LOCATION, StorageUnit(path))
 
     def put_vcf_with_index(self, path):
         """
@@ -49,7 +58,32 @@ class Variation(ReportFile):
         :type path: str
         :rtype: None
         """
-        compressed_data_file_path = self.__create_compressed_data_file(path)
+        cutter = utils.get_java_tool('genestack-vcf-samples-cutter')
+        method = compression.get_file_compression(path)
+        compressed_data_file_path = path + '.filtered.bgz'
+        temp_samples_headers = path + '.temp'
+        genotypes_file = path + '.genotypes'
+        index_folder = os.path.join(os.path.dirname(compressed_data_file_path), compressed_data_file_path + '.index')
+
+        from plumbum.cmd import gunzip, java
+        bgzip = get_tool('bcftools', 'bgzip')["-c"]
+
+        cutter_arguments = ["-jar", cutter, "-d", index_folder, "-s", temp_samples_headers]
+        if method == compression.UNCOMPRESSED:
+            cutter_arguments.extend(["-i", path])
+            first_pass_cmd = java[cutter_arguments]
+        elif method == compression.GZIP:
+            first_pass_cmd = gunzip["-c", path] | java[cutter_arguments]
+        else:
+            raise(GenestackException("vcf file must be gziped on uncompressed"))
+        (first_pass_cmd | bgzip) & RUN(stdout=compressed_data_file_path)
+
+        cutter_arguments.extend(["-g", genotypes_file])
+        second_pass_cmd = java[cutter_arguments]
+        if method != compression.UNCOMPRESSED:
+            second_pass_cmd = gunzip["-c", path] | second_pass_cmd
+        second_pass_cmd  & RUN
+
         tabix = self.__create_tabix(compressed_data_file_path)
         num_of_variants = self.__get_number_of_variants(compressed_data_file_path)
         index = self.__create_index(compressed_data_file_path, num_of_variants)
@@ -57,6 +91,7 @@ class Variation(ReportFile):
         self.put_data_file(compressed_data_file_path)
         self.put_tabix_file(tabix)
         self.put_index(index)
+        self.put_genotypes(genotypes_file)
 
     def get_data_file(self, working_dir=None, decompressed=True):
         units = self.GET(self.DATA_LOCATION, working_dir=working_dir)
