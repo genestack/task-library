@@ -28,7 +28,7 @@ try:
         def __getattr__(cls, name):
                 return Mock()
 
-    MOCK_MODULES = [ 'vcf', 'requests', 'plumbum', 'plumbum.commands']
+    MOCK_MODULES = ['vcf', 'requests', 'plumbum', 'plumbum.commands', 'requests.exceptions']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
     pass
