@@ -11,6 +11,8 @@ class Metainfo(dict):
     """
     Represents metainfo of the file.
     """
+    INTERFACE_NAME = 'com.genestack.api.metainfo.IMetainfo'
+
     NAME = "genestack:name"
     DESCRIPTION = "genestack:description"
     CREATION_DATE = "genestack:dateCreated"

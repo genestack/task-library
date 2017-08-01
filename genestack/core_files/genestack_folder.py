@@ -6,6 +6,7 @@ from genestack.java import java_object, JAVA_ARRAY_LIST, JAVA_COLLECTION, JAVA_C
 from genestack.metainfo import Metainfo
 from genestack.container_file_query import ContainerFileQuery
 from genestack.utils import validate_type
+from genestack.provenance import Provenance
 
 
 class FileTypeEnum(object):
@@ -64,11 +65,13 @@ class Folder(File):
     """
     INTERFACE_NAME = 'com.genestack.api.files.IFolder'
 
+    _METAINFO_WRITABLE_CLASS_NAME = 'com.genestack.api.metainfo.MetainfoWritable'
+
     MAX_QUERY_PAGE_SIZE = 100
 
-    def create_dataset(self, metainfo, child_type, children):
+    def create_dataset_from_selection(self, metainfo, child_type, children):
         """
-        Creates a new dataset in this folder.
+        Creates a new dataset with manual selection provenance in this folder.
 
         :param metainfo:  metainfo of the file to be created
         :type metainfo: Metainfo
@@ -80,29 +83,54 @@ class Folder(File):
         :return: Dataset object
         :rtype: Dataset
         """
-        validate_type(metainfo, Metainfo)
-        validate_type(child_type, basestring)
-        validate_type(children, list)
-
-        children_list = [
-            java_object(child.INTERFACE_NAME, {'id': child.object_id}) for child in children
-        ]
+        self._validate_dataset_parameters(metainfo, None, child_type, children)
 
         created_file_id = self.invoke(
             'createDatasetFromSelection',
             [
-                'com.genestack.api.metainfo.IMetainfo',
+                Metainfo.INTERFACE_NAME,
                 JAVA_CLASS,
                 JAVA_COLLECTION
             ],
             [
-                java_object(
-                    'com.genestack.api.metainfo.MetainfoWritable',
-                    metainfo.get_java_object()
-                ),
+                java_object(self._METAINFO_WRITABLE_CLASS_NAME, metainfo.get_java_object()),
                 java_object(JAVA_CLASS, child_type),
-                java_object(JAVA_ARRAY_LIST, children_list)
+                java_object(JAVA_ARRAY_LIST, self._get_children_as_java_dict(children))
+            ]
+        )['id']
+        return Dataset(created_file_id)
 
+    def create_dataset(self, metainfo, provenance, child_type, children):
+        """
+        Creates a new dataset in this folder.
+
+        :param metainfo:  metainfo of the file to be created
+        :type metainfo: Metainfo
+        :param provenance: provenance of the created dataset
+        :type provenance: Provenance
+        :param child_type: dataset type, must be one of file interfaces
+        :type child_type: basestring
+        :param children: list of files to be put in to the dataset
+        :type children: list[File]
+
+        :return: Dataset object
+        :rtype: Dataset
+        """
+        self._validate_dataset_parameters(metainfo, provenance, child_type, children)
+
+        created_file_id = self.invoke(
+            'createDataset',
+            [
+                Metainfo.INTERFACE_NAME,
+                Provenance.CLASS_NAME,
+                JAVA_CLASS,
+                JAVA_COLLECTION
+            ],
+            [
+                java_object(self._METAINFO_WRITABLE_CLASS_NAME, metainfo.get_java_object()),
+                provenance.as_java_object(),
+                java_object(JAVA_CLASS, child_type),
+                java_object(JAVA_ARRAY_LIST, self._get_children_as_java_dict(children))
             ]
         )['id']
         return Dataset(created_file_id)
@@ -139,11 +167,11 @@ class Folder(File):
             'createFile',
             [
                 'com.genestack.api.files.IFileType',
-                'com.genestack.api.metainfo.IMetainfo'
+                Metainfo.INTERFACE_NAME
             ],
             [
                 java_object(file_type_enum, file_type),
-                java_object('com.genestack.api.metainfo.MetainfoWritable', metainfo.get_java_object())
+                java_object(self._METAINFO_WRITABLE_CLASS_NAME, metainfo.get_java_object())
             ]
         )['id']
 
@@ -182,10 +210,20 @@ class Folder(File):
 
     def link_file(self, genestack_file):
         validate_type(genestack_file, File)
-        self.invoke('linkFile', ['com.genestack.api.files.IFile'], [genestack_file.as_java_object()])
+        self.invoke('linkFile', [File.INTERFACE_NAME], [genestack_file.as_java_object()])
 
     def unlink_file(self, genestack_file):
         validate_type(genestack_file, File)
-        self.invoke('unlinkFile', ['com.genestack.api.files.IFile'], [genestack_file.as_java_object()])
+        self.invoke('unlinkFile', [File.INTERFACE_NAME], [genestack_file.as_java_object()])
 
+    def _validate_dataset_parameters(self, metainfo, provenance, child_type, children):
+        validate_type(metainfo, Metainfo)
+        validate_type(provenance, Provenance, accept_none=True)
+        validate_type(child_type, basestring)
+        validate_type(children, list)
 
+    @staticmethod
+    def _get_children_as_java_dict(children):
+        return [
+            java_object(child.INTERFACE_NAME, {'id': child.object_id}) for child in children
+        ]
